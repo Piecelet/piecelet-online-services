@@ -5,6 +5,8 @@ node_modules
 .vercel
 .netlify
 .wrangler
+wrangler.toml
+wrangler.jsonc
 /.svelte-kit
 /build
 database.sqlite

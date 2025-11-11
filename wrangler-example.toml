@@ -1,0 +1,21 @@
+name = "piecelet-account"
+main = "./.svelte-kit/cloudflare/_worker.js"
+compatibility_date = "2025-11-01"
+
+[[d1_databases]]
+binding = "DATABASE"            # must match your code
+database_name = "piecelet-online-services"
+database_id = "piecelet-online-services" # find this in Cloudflare dashboard
+
+[[kv_namespaces]]
+binding = "KV"
+id = "<your_kv_id>"
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "<your_r2_bucket_name>"
+
+[vars]
+BETTER_AUTH_URL = "https://<your-worker-subdomain>.workers.dev"
+BETTER_AUTH_SECRET = "<random-32-64-bytes-secret>"
+

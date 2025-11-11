@@ -1,6 +1,6 @@
 import { createAuthClient } from "better-auth/svelte";
+import { cloudflareClient } from "better-auth-cloudflare/client";
 
 export const authClient = createAuthClient({
-  // Add client-side plugins or options here if needed
+  plugins: [cloudflareClient()],
 });
-
