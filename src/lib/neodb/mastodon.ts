@@ -1,8 +1,8 @@
-import type { NeodbClient, OAuthTokenResponse, NeodbMe } from "./types";
+import type { NeoDBClient, OAuthTokenResponse, NeoDBMe } from "./types";
 import { saveClient, getClient } from "./store";
 import { parseNeodbMe } from "./util";
 
-export async function registerMastodonApp(base: URL, redirectUri: string): Promise<NeodbClient> {
+export async function registerMastodonApp(base: URL, redirectUri: string): Promise<NeoDBClient> {
   const body = new URLSearchParams();
   body.set("client_name", "Piecelet Online");
   body.set("redirect_uris", redirectUri);
@@ -37,7 +37,7 @@ export async function registerMastodonApp(base: URL, redirectUri: string): Promi
   };
 }
 
-export async function getOrCreateClient(base: URL, redirectUri: string): Promise<NeodbClient> {
+export async function getOrCreateClient(base: URL, redirectUri: string): Promise<NeoDBClient> {
   const existing = getClient(base.origin);
   if (existing && existing.redirect_uri === redirectUri) return existing;
   const c = await registerMastodonApp(base, redirectUri);
@@ -57,7 +57,7 @@ export function buildAuthorizeUrl(instanceOrigin: string, clientId: string, redi
   return authUrl.toString();
 }
 
-export async function exchangeToken(instanceOrigin: string, client: NeodbClient, code: string, redirectUri: string, codeVerifier?: string): Promise<OAuthTokenResponse> {
+export async function exchangeToken(instanceOrigin: string, client: NeoDBClient, code: string, redirectUri: string, codeVerifier?: string): Promise<OAuthTokenResponse> {
   const body = new URLSearchParams();
   body.set("grant_type", "authorization_code");
   body.set("code", code);
@@ -89,7 +89,7 @@ export async function exchangeToken(instanceOrigin: string, client: NeodbClient,
   };
 }
 
-export async function fetchMe(instanceOrigin: string, accessToken: string): Promise<NeodbMe> {
+export async function fetchMe(instanceOrigin: string, accessToken: string): Promise<NeoDBMe> {
   const meResp = await fetch(`${instanceOrigin}/api/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });

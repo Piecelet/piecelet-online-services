@@ -1,16 +1,16 @@
 import { db } from "$lib/db";
-import type { NeodbClient, NeodbState } from "./types";
+import type { NeoDBClient, NeoDBState } from "./types";
 import { nowIso } from "./util";
 
-export function getClient(instance: string): NeodbClient | null {
+export function getClient(instance: string): NeoDBClient | null {
   const st = db.prepare(
     "SELECT instance, client_id, client_secret, redirect_uri FROM neodb_clients WHERE instance = ?",
   );
-  const row = st.get(instance) as NeodbClient | undefined;
+  const row = st.get(instance) as NeoDBClient | undefined;
   return row ?? null;
 }
 
-export function saveClient(client: NeodbClient): void {
+export function saveClient(client: NeoDBClient): void {
   const st = db.prepare(
     "INSERT OR REPLACE INTO neodb_clients(instance, client_id, client_secret, redirect_uri, created_at) VALUES (?,?,?,?,?)",
   );
@@ -24,7 +24,7 @@ export function saveState(state: string, instance: string, callbackURL?: string 
   st.run(state, instance, callbackURL ?? null, nowIso());
 }
 
-export function popState(state: string): Pick<NeodbState, "instance" | "callback_url"> | null {
+export function popState(state: string): Pick<NeoDBState, "instance" | "callback_url"> | null {
   const get = db.prepare(
     "SELECT instance, callback_url FROM neodb_states WHERE state = ?",
   );

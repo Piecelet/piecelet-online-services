@@ -5,15 +5,15 @@ import { setSessionCookie } from "better-auth/cookies";
 import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier } from "./util";
 import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe } from "./mastodon";
 import { saveState, popState, getClient } from "./store";
-import type { NeodbMe, AuthResultData } from "./types";
+import type { NeoDBMe, AuthResultData } from "./types";
 
-function buildEmailLike(me: NeodbMe, instanceHost: string): string | null {
+function buildEmailLike(me: NeoDBMe, instanceHost: string): string | null {
   if (me.external_acct) return me.external_acct.toLowerCase();
   if (me.username) return `${me.username}@${instanceHost}`.toLowerCase();
   return null;
 }
 
-function buildAccountId(me: NeodbMe, instanceHost: string): string {
+function buildAccountId(me: NeoDBMe, instanceHost: string): string {
   if (me.url) return String(me.url);
   if (me.username) return `${me.username}@${instanceHost}`;
   return instanceHost;
@@ -114,7 +114,7 @@ export const neodbOAuthPlugin = {
           throw ctx.redirect(target.toString());
         }
 
-        let me: NeodbMe;
+        let me: NeoDBMe;
         try {
           me = await fetchMe(instanceURL.origin, tokens.access_token);
         } catch (e: unknown) {

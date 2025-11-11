@@ -1,11 +1,11 @@
-export interface NeodbClient {
+export interface NeoDBClient {
   instance: string;
   client_id: string;
   client_secret: string;
   redirect_uri: string;
 }
 
-export interface NeodbState {
+export interface NeoDBState {
   state: string;
   instance: string;
   callback_url: string | null;
@@ -13,7 +13,7 @@ export interface NeodbState {
 }
 
 // Minimal structure for /api/me. You can extend it as needed.
-export interface NeodbMe {
+export interface NeoDBMe {
   url?: string;
   external_acct?: string;
   external_accounts?: Array<{

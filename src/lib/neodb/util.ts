@@ -1,4 +1,4 @@
-import type { NeodbMe } from "./types";
+import type { NeoDBMe } from "./types";
 
 export const nowIso = (): string => new Date().toISOString();
 
@@ -52,8 +52,8 @@ export async function assertIsNeoDBInstance(base: URL): Promise<void> {
   }
 }
 
-export function parseNeodbMe(u: unknown): NeodbMe {
-  const out: NeodbMe = {};
+export function parseNeodbMe(u: unknown): NeoDBMe {
+  const out: NeoDBMe = {};
   if (u && typeof u === "object") {
     const r = u as Record<string, unknown>;
     if (typeof r.url === "string") out.url = r.url;
