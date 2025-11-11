@@ -1,66 +1,38 @@
 <script lang="ts">
   import { authClient } from "$lib/auth-client";
 
-  let email = "";
-  let password = "";
-  let name = "";
+  let instance = "";
   let errorMsg: string | null = null;
 
   const session = authClient.useSession();
 
-  async function doSignUp() {
+  function startNeoDB() {
     errorMsg = null;
-    const { error } = await authClient.signUp.email(
-      { email, password, name },
-      {
-        onError: (ctx) => {
-          errorMsg = ctx.error.message;
-        },
-      },
-    );
-  }
-
-  async function doSignIn() {
-    errorMsg = null;
-    const { error } = await authClient.signIn.email(
-      { email, password },
-      {
-        onError: (ctx) => {
-          errorMsg = ctx.error.message;
-        },
-      },
-    );
+    const inst = instance.trim();
+    if (!inst) {
+      errorMsg = "请输入 NeoDB 实例地址";
+      return;
+    }
+    const u = new URL(window.location.origin);
+    const callbackURL = `${u.origin}/`; // 登录成功后回到首页（可按需修改）
+    const start = new URL(`/api/auth/neodb/start`, u.origin);
+    start.searchParams.set("instance", inst);
+    start.searchParams.set("callbackURL", callbackURL);
+    window.location.href = start.toString();
   }
 </script>
 
 <h1>Login</h1>
 
 {#if $session.data}
-  <p>Signed in as {$session.data.user.email}</p>
+  <p>已登录：{$session.data.user.email}</p>
   <button onclick={() => authClient.signOut()}>Sign out</button>
 {:else}
   {#if errorMsg}
     <p style="color: crimson">{errorMsg}</p>
   {/if}
   <div style="display: grid; gap: 8px; max-width: 360px;">
-    <input
-      placeholder="Email"
-      bind:value={email}
-      type="email"
-      autocomplete="email"
-      required
-    />
-    <input
-      placeholder="Password"
-      bind:value={password}
-      type="password"
-      autocomplete="current-password"
-      required
-    />
-    <input placeholder="Name (for sign up)" bind:value={name} />
-    <div style="display: flex; gap: 8px;">
-      <button onclick={doSignIn}>Sign in</button>
-      <button onclick={doSignUp}>Sign up</button>
-    </div>
+    <input placeholder="NeoDB 实例（例如 neodb.social 或 https://neodb.social）" bind:value={instance} />
+    <button onclick={startNeoDB}>使用 NeoDB 登录</button>
   </div>
 {/if}
