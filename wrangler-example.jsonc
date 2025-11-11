@@ -19,7 +19,7 @@
 	},
   "d1_databases": [
     {
-      "binding": "DATABASE",
+      "binding": "ACCOUNT_DATABASE",
       "database_name": "<DATABASE_NAME>",
       "database_id": "<DATABASE_ID>"
     }
