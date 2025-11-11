@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "piecelet-online-services",
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"compatibility_date": "2025-11-01",
+	"assets": {
+		"binding": "ASSETS",
+		"directory": ".svelte-kit/cloudflare"
+	},
+  "d1_databases": [
+    {
+      "binding": "piecelet-online-services-db",
+      "database_name": "<DATABASE_NAME>",
+      "database_id": "<DATABASE_ID>"
+    }
+  ]
+}
