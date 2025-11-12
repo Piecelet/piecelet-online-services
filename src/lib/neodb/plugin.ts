@@ -5,6 +5,8 @@ import { setSessionCookie } from "better-auth/cookies";
 import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier } from "./util";
 import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe } from "./mastodon";
 import { saveState, popState, getClient } from "./store";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { schema } from "$lib/db";
 import type { NeoDBMe, AuthResultData } from "./types";
 
 function buildEmailLike(me: NeoDBMe, instanceHost: string): string | null {
@@ -30,6 +32,13 @@ export const neodbOAuthPlugin = {
         const instanceRaw = url.searchParams.get("instance") || "";
         const callbackURL = url.searchParams.get("callbackURL") || "/";
 
+        const db = (ctx.context.options as any)?.d1?.db as DrizzleD1Database<typeof schema> | undefined;
+        if (!db) {
+          const target = new URL(ctx.context.options.onAPIError?.errorURL || `${ctx.context.baseURL}/error`);
+          target.searchParams.set("error", "database_unavailable");
+          throw ctx.redirect(target.toString());
+        }
+
         let instanceURL: URL;
         try {
           instanceURL = normalizeInstance(instanceRaw);
@@ -44,7 +53,7 @@ export const neodbOAuthPlugin = {
         const redirectUri = `${ctx.context.baseURL}/neodb/callback`;
         let client;
         try {
-          client = await getOrCreateClient(instanceURL, redirectUri);
+          client = await getOrCreateClient(db, instanceURL, redirectUri);
         } catch (e: unknown) {
           const target = new URL(ctx.context.options.onAPIError?.errorURL || `${ctx.context.baseURL}/error`);
           const message = e instanceof Error ? e.message : "app_registration_failed";
@@ -53,7 +62,7 @@ export const neodbOAuthPlugin = {
         }
 
         const { state, codeVerifier } = await generateState(ctx);
-        saveState(state, instanceURL.origin, callbackURL);
+        await saveState(db, state, instanceURL.origin, callbackURL);
         const codeChallenge = await pkceChallengeFromVerifier(codeVerifier);
 
         const urlStr = buildAuthorizeUrl(instanceURL.origin, client.client_id, redirectUri, state, codeChallenge);
@@ -76,8 +85,15 @@ export const neodbOAuthPlugin = {
           throw ctx.redirect(target.toString());
         }
 
+        const db = (ctx.context.options as any)?.d1?.db as DrizzleD1Database<typeof schema> | undefined;
+        if (!db) {
+          const target = new URL(defaultErrorURL);
+          target.searchParams.set("error", "database_unavailable");
+          throw ctx.redirect(target.toString());
+        }
+
         const parsed = await parseState(ctx);
-        const stateInfo = popState(state);
+        const stateInfo = await popState(db, state);
         if (!stateInfo) {
           const target = new URL(defaultErrorURL);
           target.searchParams.set("error", "state_not_found");
@@ -93,7 +109,7 @@ export const neodbOAuthPlugin = {
         }
 
         const redirectUri = `${ctx.context.baseURL}/neodb/callback`;
-        const client = getClient(instanceURL.origin);
+        const client = await getClient(db, instanceURL.origin);
         if (!client) {
           const target = new URL(defaultErrorURL);
           target.searchParams.set("error", "client_not_found");

@@ -1,5 +1,7 @@
 import type { NeoDBClient, OAuthTokenResponse, NeoDBMe } from "./types";
 import { saveClient, getClient } from "./store";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { schema } from "$lib/db";
 import { parseNeodbMe } from "./util";
 
 export async function registerMastodonApp(base: URL, redirectUri: string): Promise<NeoDBClient> {
@@ -37,11 +39,11 @@ export async function registerMastodonApp(base: URL, redirectUri: string): Promi
   };
 }
 
-export async function getOrCreateClient(base: URL, redirectUri: string): Promise<NeoDBClient> {
-  const existing = getClient(base.origin);
+export async function getOrCreateClient(db: DrizzleD1Database<typeof schema>, base: URL, redirectUri: string): Promise<NeoDBClient> {
+  const existing = await getClient(db, base.origin);
   if (existing && existing.redirect_uri === redirectUri) return existing;
   const c = await registerMastodonApp(base, redirectUri);
-  saveClient(c);
+  await saveClient(db, c);
   return c;
 }
 
@@ -99,4 +101,3 @@ export async function fetchMe(instanceOrigin: string, accessToken: string): Prom
   const me = (await meResp.json().catch(() => null)) as unknown;
   return parseNeodbMe(me);
 }
-
