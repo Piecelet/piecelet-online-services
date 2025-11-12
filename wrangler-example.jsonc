@@ -21,8 +21,15 @@
     {
       "binding": "ACCOUNT_DATABASE",
       "database_name": "<DATABASE_NAME>",
-      "database_id": "<DATABASE_ID>"
+      "database_id": "<DATABASE_ID>",
+	  "migrations_dir": "drizzle"
     }
+  ],
+  "kv_namespaces": [
+		{
+			"binding": "ACCOUNT_KV",
+			"id": "<KV_NAMESPACE_ID>"
+		}
   ]
 	/**
 	 * Smart Placement
