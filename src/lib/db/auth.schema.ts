@@ -87,8 +87,12 @@ export const neodbClients = sqliteTable('neodb_clients', {
   clientId: text('client_id').notNull(),
   clientSecret: text('client_secret').notNull(),
   redirectUri: text('redirect_uri').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull()
 });
 
 export const neodbStates = sqliteTable('neodb_states', {
@@ -96,6 +100,10 @@ export const neodbStates = sqliteTable('neodb_states', {
   state: text('state').notNull().unique(),
   instance: text('instance').notNull(),
   callbackUrl: text('callback_url'),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull()
 });

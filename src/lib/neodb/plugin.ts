@@ -38,10 +38,12 @@ export const neodbOAuthPlugin = {
         createdAt: {
           type: "date",
           required: true,
+          defaultValue: () => new Date(),
         },
         updatedAt: {
           type: "date",
           required: true,
+          defaultValue: () => new Date(),
         },
       },
     },
@@ -63,10 +65,12 @@ export const neodbOAuthPlugin = {
         createdAt: {
           type: "date",
           required: true,
+          defaultValue: () => new Date(),
         },
         updatedAt: {
           type: "date",
           required: true,
+          defaultValue: () => new Date(),
         },
       },
     },
