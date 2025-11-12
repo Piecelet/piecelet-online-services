@@ -1,4 +1,4 @@
-import { db } from "$lib/db";
+import { db } from "$lib/db/db";
 import type { NeoDBClient, NeoDBState } from "./types";
 import { nowIso } from "./util";
 
