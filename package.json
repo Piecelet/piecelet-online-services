@@ -10,6 +10,7 @@
 		"build:vite": "vite build",
 		"preview:vite": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
+		"prepare:db:dev": "npm run auth:update && npm run db:generate && npm run db:migrate:dev",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "eslint . && prettier --check .",
