@@ -1,4 +1,4 @@
-import type { NeoDBMe } from "./types";
+import type { NeoDBMe, NeoDBUserInfo } from "./types";
 
 export const nowIso = (): string => new Date().toISOString();
 
@@ -77,5 +77,41 @@ export function parseNeodbMe(u: unknown): NeoDBMe {
     if (Array.isArray(r.roles)) out.roles = r.roles.filter((x) => typeof x === "string") as string[];
   }
   return out;
+}
+
+/**
+ * Extract user info from NeoDB /api/me response
+ * - email: extract from external_accounts where platform === "email"
+ * - username: format as @username@instance
+ * - displayName: use display_name or fallback to username
+ */
+export function extractNeoDBUserInfo(me: NeoDBMe, instanceHost: string): NeoDBUserInfo | null {
+  // Extract email from external_accounts
+  let email: string | undefined;
+  if (me.external_accounts) {
+    const emailAccount = me.external_accounts.find(acc => acc.platform === "email");
+    if (emailAccount?.handle) {
+      email = emailAccount.handle;
+    }
+  }
+
+  // If no email found, return null
+  if (!email) {
+    return null;
+  }
+
+  // Build username as @username@instance
+  const username = me.username ? `@${me.username}@${instanceHost}` : `@unknown@${instanceHost}`;
+
+  // Use display_name or fallback to username
+  const displayName = me.display_name || me.username || email.split("@")[0] || "Unknown";
+
+  return {
+    email,
+    username,
+    displayName,
+    avatar: me.avatar,
+    externalAcct: me.external_acct,
+  };
 }
 

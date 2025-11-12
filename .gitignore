@@ -16,6 +16,7 @@ database.sqlite
 # OS
 .DS_Store
 Thumbs.db
+.claude
 
 # Env
 .env

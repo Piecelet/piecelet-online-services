@@ -1,28 +1,76 @@
 import { createAuthEndpoint } from "better-auth/api";
 import { generateState, parseState, handleOAuthUserInfo } from "better-auth/oauth2";
 import { setSessionCookie } from "better-auth/cookies";
+import type { BetterAuthPlugin } from "better-auth";
 
-import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier } from "./util";
+import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, extractNeoDBUserInfo } from "./util";
 import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe } from "./mastodon";
-import { saveState, popState, getClient } from "./store";
-import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { schema } from "$lib/db";
 import type { NeoDBMe, AuthResultData } from "./types";
-
-function buildEmailLike(me: NeoDBMe, instanceHost: string): string | null {
-  if (me.external_acct) return me.external_acct.toLowerCase();
-  if (me.username) return `${me.username}@${instanceHost}`.toLowerCase();
-  return null;
-}
 
 function buildAccountId(me: NeoDBMe, instanceHost: string): string {
   if (me.url) return String(me.url);
-  if (me.username) return `${me.username}@${instanceHost}`;
-  return instanceHost;
+  if (me.username) return `@${me.username}@${instanceHost}`;
+  return `@unknown@${instanceHost}`;
 }
 
 export const neodbOAuthPlugin = {
   id: "neodb-oauth",
+  schema: {
+    neodbClient: {
+      fields: {
+        instance: {
+          type: "string",
+          required: true,
+          unique: true,
+        },
+        clientId: {
+          type: "string",
+          required: true,
+        },
+        clientSecret: {
+          type: "string",
+          required: true,
+        },
+        redirectUri: {
+          type: "string",
+          required: true,
+        },
+        createdAt: {
+          type: "date",
+          required: true,
+        },
+        updatedAt: {
+          type: "date",
+          required: true,
+        },
+      },
+    },
+    neodbState: {
+      fields: {
+        state: {
+          type: "string",
+          required: true,
+          unique: true,
+        },
+        instance: {
+          type: "string",
+          required: true,
+        },
+        callbackUrl: {
+          type: "string",
+          required: false,
+        },
+        createdAt: {
+          type: "date",
+          required: true,
+        },
+        updatedAt: {
+          type: "date",
+          required: true,
+        },
+      },
+    },
+  },
   endpoints: {
     neodbStart: createAuthEndpoint(
       "/neodb/start",
@@ -32,8 +80,8 @@ export const neodbOAuthPlugin = {
         const instanceRaw = url.searchParams.get("instance") || "";
         const callbackURL = url.searchParams.get("callbackURL") || "/";
 
-        const db = (ctx.context.options as any)?.d1?.db as DrizzleD1Database<typeof schema> | undefined;
-        if (!db) {
+        const adapter = ctx.context.adapter;
+        if (!adapter) {
           const target = new URL(ctx.context.options.onAPIError?.errorURL || `${ctx.context.baseURL}/error`);
           target.searchParams.set("error", "database_unavailable");
           throw ctx.redirect(target.toString());
@@ -53,7 +101,7 @@ export const neodbOAuthPlugin = {
         const redirectUri = `${ctx.context.baseURL}/neodb/callback`;
         let client;
         try {
-          client = await getOrCreateClient(db, instanceURL, redirectUri);
+          client = await getOrCreateClient(adapter, instanceURL, redirectUri);
         } catch (e: unknown) {
           const target = new URL(ctx.context.options.onAPIError?.errorURL || `${ctx.context.baseURL}/error`);
           const message = e instanceof Error ? e.message : "app_registration_failed";
@@ -62,10 +110,10 @@ export const neodbOAuthPlugin = {
         }
 
         const { state, codeVerifier } = await generateState(ctx);
-        await saveState(db, state, instanceURL.origin, callbackURL);
+        await saveState(adapter, state, instanceURL.origin, callbackURL);
         const codeChallenge = await pkceChallengeFromVerifier(codeVerifier);
 
-        const urlStr = buildAuthorizeUrl(instanceURL.origin, client.client_id, redirectUri, state, codeChallenge);
+        const urlStr = buildAuthorizeUrl(instanceURL.origin, client.clientId, redirectUri, state, codeChallenge);
         throw ctx.redirect(urlStr);
       },
     ),
@@ -85,15 +133,15 @@ export const neodbOAuthPlugin = {
           throw ctx.redirect(target.toString());
         }
 
-        const db = (ctx.context.options as any)?.d1?.db as DrizzleD1Database<typeof schema> | undefined;
-        if (!db) {
+        const adapter = ctx.context.adapter;
+        if (!adapter) {
           const target = new URL(defaultErrorURL);
           target.searchParams.set("error", "database_unavailable");
           throw ctx.redirect(target.toString());
         }
 
         const parsed = await parseState(ctx);
-        const stateInfo = await popState(db, state);
+        const stateInfo = await popState(adapter, state);
         if (!stateInfo) {
           const target = new URL(defaultErrorURL);
           target.searchParams.set("error", "state_not_found");
@@ -109,7 +157,7 @@ export const neodbOAuthPlugin = {
         }
 
         const redirectUri = `${ctx.context.baseURL}/neodb/callback`;
-        const client = await getClient(db, instanceURL.origin);
+        const client = await getClient(adapter, instanceURL.origin);
         if (!client) {
           const target = new URL(defaultErrorURL);
           target.searchParams.set("error", "client_not_found");
@@ -139,22 +187,22 @@ export const neodbOAuthPlugin = {
           throw ctx.redirect(target.toString());
         }
 
-        const email = buildEmailLike(me, instanceURL.host);
-        if (!email) {
+        // Extract user info using the new function
+        const userInfo = extractNeoDBUserInfo(me, instanceURL.host);
+        if (!userInfo) {
           const target = new URL(defaultErrorURL);
           target.searchParams.set("error", "email_not_found");
           throw ctx.redirect(target.toString());
         }
+
         const accountId = buildAccountId(me, instanceURL.host);
-        const name = me.display_name || email;
-        const image = me.avatar;
 
         const result = await handleOAuthUserInfo(ctx, {
           userInfo: {
             id: String(accountId),
-            email,
-            name,
-            image,
+            email: userInfo.email,
+            name: userInfo.displayName,
+            image: userInfo.avatar,
             emailVerified: true,
           },
           account: {
@@ -179,11 +227,11 @@ export const neodbOAuthPlugin = {
         const cookieCtx = ctx as unknown as Parameters<typeof setSessionCookie>[0];
         await setSessionCookie(cookieCtx, { session: data.session, user: data.user });
 
-        const inferredCallback = stateInfo.callback_url || parsed.callbackURL || "/";
+        const inferredCallback = stateInfo.callbackUrl || parsed.callbackURL || "/";
         const isRegister = Boolean((result as { isRegister?: boolean }).isRegister);
         const to = isRegister ? parsed.newUserURL || inferredCallback : inferredCallback;
         throw ctx.redirect(String(to));
       },
     ),
   },
-} as const;
+} satisfies BetterAuthPlugin;

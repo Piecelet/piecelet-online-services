@@ -12,7 +12,7 @@ export interface NeoDBState {
   created_at: string;
 }
 
-// Minimal structure for /api/me. You can extend it as needed.
+// NeoDB /api/me response structure
 export interface NeoDBMe {
   url?: string;
   external_acct?: string;
@@ -25,6 +25,15 @@ export interface NeoDBMe {
   avatar?: string;
   username?: string;
   roles?: string[];
+}
+
+// Extracted user info from NeoDB API
+export interface NeoDBUserInfo {
+  email: string;
+  username: string; // format: @username@instance
+  displayName: string;
+  avatar?: string;
+  externalAcct?: string;
 }
 
 export interface OAuthTokenResponse {
