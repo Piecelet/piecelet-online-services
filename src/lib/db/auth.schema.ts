@@ -92,7 +92,7 @@ export const neodbClients = sqliteTable('neodb_clients', {
     .notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-    .$onUpdate(() => new Date())
+    .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull()
 });
 
@@ -106,6 +106,6 @@ export const neodbStates = sqliteTable('neodb_states', {
     .notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-    .$onUpdate(() => new Date())
+    .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull()
 });
