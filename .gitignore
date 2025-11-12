@@ -9,6 +9,7 @@ wrangler.toml
 wrangler.jsonc
 worker-configuration.d.ts
 /.svelte-kit
+/drizzle
 /build
 database.sqlite
 
