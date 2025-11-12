@@ -3,7 +3,7 @@ import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/d1";
-import { db } from "$lib/db/db";
+import { schema } from "$lib/db";
 import { neodbOAuthPlugin } from "$lib/neodb/plugin";
 import { withCloudflare } from "better-auth-cloudflare";
 
