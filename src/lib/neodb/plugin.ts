@@ -44,6 +44,7 @@ export const neodbOAuthPlugin = {
           type: "date",
           required: true,
           defaultValue: () => new Date(),
+          onUpdate: (() => /* @__PURE__ */ new Date())
         },
       },
     },
@@ -71,6 +72,7 @@ export const neodbOAuthPlugin = {
           type: "date",
           required: true,
           defaultValue: () => new Date(),
+          onUpdate: (() => /* @__PURE__ */ new Date())
         },
       },
     },
