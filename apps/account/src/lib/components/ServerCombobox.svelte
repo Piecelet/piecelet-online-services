@@ -108,41 +108,49 @@
         );
     }
 
+    // Shared helpers for syncing value and submitting
+    function syncFrom(target: HTMLInputElement) {
+        value = target.value;
+        onInputChange?.(target.value);
+    }
+
+    function requestFormSubmitFrom(target: HTMLInputElement) {
+        const form = (target.form || target.closest('form')) as HTMLFormElement | null;
+        if (form) form.requestSubmit();
+        else onSubmit?.();
+    }
+
     // Handle input changes: always reflect raw text to bound value
     function handleInput(combobox: any) {
         return (e: Event) => {
-            const target = e.currentTarget as HTMLInputElement;
-            value = target.value;
-            onInputChange?.(target.value);
+            syncFrom(e.currentTarget as HTMLInputElement);
         };
     }
 
     // Ensure composition text (IME) is also reflected immediately
     function handleComposition(combobox: any) {
         return (e: CompositionEvent) => {
-            const target = e.currentTarget as HTMLInputElement;
-            value = target.value;
-            onInputChange?.(target.value);
+            syncFrom(e.currentTarget as HTMLInputElement);
         };
     }
 
     // On blur, sync once more to capture any pending edits
     function handleBlur(combobox: any) {
         return (e: FocusEvent) => {
-            const target = e.currentTarget as HTMLInputElement;
-            value = target.value;
-            onInputChange?.(target.value);
+            syncFrom(e.currentTarget as HTMLInputElement);
         };
     }
 
-    // Handle keyboard: Enter always submits with current text (no forced selection)
+    // Handle keyboard: Enter submits via the parent form to share same path as the button
     function handleKeyDown(combobox: any) {
         return (e: KeyboardEvent) => {
             if (e.key === 'Enter') {
+                // Prevent Combobox default selection behavior and use the form submit instead
                 e.preventDefault();
-                // Ensure the bound value mirrors the visible input text
-                value = combobox.inputValue ?? '';
-                onSubmit?.();
+                const input = e.currentTarget as HTMLInputElement;
+                // Do not force-set value here to avoid clobbering with empty/placeholder.
+                // 'value' is already kept in sync by input/composition/blur handlers.
+                requestFormSubmitFrom(input);
             }
         };
     }
