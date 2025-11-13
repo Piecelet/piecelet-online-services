@@ -6,6 +6,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/d1";
 import { schema } from "../db";
 import type { CloudflareBindings } from "../env";
+import { neodbOAuthPlugin } from "../neodb/plugin";
 
 // Single auth configuration that handles both CLI and runtime scenarios
 function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) {
@@ -33,7 +34,7 @@ function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) 
                 emailAndPassword: {
                     enabled: true,
                 },
-                plugins: [anonymous()],
+                plugins: [anonymous(), neodbOAuthPlugin],
                 rateLimit: {
                     enabled: true,
                 },
