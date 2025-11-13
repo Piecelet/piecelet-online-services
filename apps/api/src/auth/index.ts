@@ -7,7 +7,8 @@ import { drizzle } from "drizzle-orm/d1";
 import { schema } from "../db";
 import type { CloudflareBindings } from "../env";
 import { neodbOAuthPlugin } from "../neodb/plugin";
-import { ALL_ALLOWED_ORIGINS } from "../config/origins";
+import { getAllowedOrigins, getBaseURL } from "../config/origins";
+import { username } from "better-auth/plugins";
 
 // Single auth configuration that handles both CLI and runtime scenarios
 function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) {
@@ -32,14 +33,20 @@ function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) 
                 kv: env?.ACCOUNT_KV,
             },
             {
+                baseURL: getBaseURL(),
                 emailAndPassword: {
                     enabled: true,
                 },
-                plugins: [anonymous(), neodbOAuthPlugin],
+                plugins: [username(), neodbOAuthPlugin],
                 rateLimit: {
                     enabled: true,
                 },
-                trustedOrigins: [...ALL_ALLOWED_ORIGINS],
+                trustedOrigins: [...getAllowedOrigins()],
+                advanced: {
+                    crossSubDomainCookies: {
+                        enabled: true,
+                    }
+                }
             }
         ),
         // Only add database adapter for CLI schema generation

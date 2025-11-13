@@ -1,8 +1,12 @@
 /**
  * Centralized origin configuration for CORS and Better Auth
+ *
+ * Rules:
+ * - DEV: Allow all origins
+ * - PROD: Only allow production origins
  */
 
-// Production origins - these are the allowed domains in production
+// Production origins - only these domains are allowed in production
 export const PRODUCTION_ORIGINS = [
     "https://account.piecelet.app",
     "https://online.piecelet.app",
@@ -11,51 +15,54 @@ export const PRODUCTION_ORIGINS = [
     "https://piecelet.app",
 ] as const;
 
-// Development origins - localhost and local IPs
-export const DEVELOPMENT_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-    "http://localhost:4173", // Vite preview
-    "http://localhost:8787", // API dev server (for same-origin requests)
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-    "http://127.0.0.1:5175",
-    "http://127.0.0.1:4173",
-    "http://127.0.0.1:8787",
-] as const;
-
-// Combined list of all allowed origins (dev includes prod)
-export const ALL_ALLOWED_ORIGINS = [
-    ...PRODUCTION_ORIGINS,
-    ...DEVELOPMENT_ORIGINS,
-] as const;
+// Base URLs for the API
+export const DEV_BASE_URL = "http://localhost:8787";
+export const PROD_BASE_URL = "https://account.piecelet.app";
 
 /**
- * Check if an origin is allowed
+ * Check if we're in development mode
+ * Cloudflare Workers doesn't have process.env at module level,
+ * so we check if we're running in a local dev environment
  */
-export function isOriginAllowed(origin: string | undefined): boolean {
-    if (!origin) return true; // Allow same-origin requests (no origin header)
+export function isDevelopment(): boolean {
+    // @ts-ignore - process may not be defined in Cloudflare Workers
+    return typeof process !== 'undefined' && process?.env?.NODE_ENV === 'development';
+}
 
-    // Check exact matches
-    if (ALL_ALLOWED_ORIGINS.includes(origin as any)) {
-        return true;
-    }
+/**
+ * Get the base URL for Better Auth
+ */
+export function getBaseURL(): string {
+    return isDevelopment() ? DEV_BASE_URL : PROD_BASE_URL;
+}
 
-    // Check if it starts with any development origin (for dynamic ports)
-    return DEVELOPMENT_ORIGINS.some(devOrigin => origin.startsWith(devOrigin.split(':').slice(0, 2).join(':')));
+/**
+ * Get allowed origins for Better Auth trustedOrigins
+ */
+export function getAllowedOrigins(): readonly string[] {
+    // In dev, include localhost origins for Better Auth
+    // In prod, only production origins
+    return isDevelopment()
+        ? [...PRODUCTION_ORIGINS, "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:4173", "http://localhost:8787", "http://127.0.0.1:5173"]
+        : PRODUCTION_ORIGINS;
 }
 
 /**
  * Get the origin to return in CORS header
+ * DEV: Allow all origins (return the requesting origin)
+ * PROD: Only return if in production origins list
  */
 export function getAllowedOrigin(origin: string | undefined): string {
-    if (!origin) return "*";
-
-    if (isOriginAllowed(origin)) {
-        return origin;
+    // DEV: Allow all origins
+    if (isDevelopment()) {
+        return origin || "*";
     }
 
-    // Fallback to first production origin
-    return PRODUCTION_ORIGINS[0];
+    // PROD: Only allow production origins
+    if (!origin) {
+        return PRODUCTION_ORIGINS[0];
+    }
+
+    // Return origin if it's in the production list, otherwise deny
+    return PRODUCTION_ORIGINS.includes(origin as any) ? origin : PRODUCTION_ORIGINS[0];
 }
