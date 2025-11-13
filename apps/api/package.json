@@ -4,12 +4,23 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
-    "hono": "^4.10.5"
+    "hono": "^4.10.5",
+    "@repo/types": "workspace:*",
+    "@repo/utils": "workspace:*"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "^9.39.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.9.2",
     "wrangler": "^4.4.0"
   }
 }
