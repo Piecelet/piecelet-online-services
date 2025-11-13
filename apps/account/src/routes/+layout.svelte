@@ -1,6 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import favicon from '$lib/assets/favicon.svg';
+  import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
 
   let { children } = $props();
 </script>
@@ -30,6 +31,9 @@
 <footer class="border-t border-[var(--border)]/80">
   <div class="mx-auto flex h-12 w-full max-w-5xl items-center justify-between px-4 sm:px-6 text-[11px] text-[var(--muted)]">
     <span>© {new Date().getFullYear()} Piecelet</span>
-    <a href="https://account.apple.com" target="_blank" rel="noreferrer" class="hover:text-[var(--text)]">Inspired by Apple Account</a>
+    <span></span>
   </div>
 </footer>
+
+<!-- Floating language switcher at bottom-right -->
+<LanguageSwitcher />

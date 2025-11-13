@@ -185,7 +185,26 @@
 
 		<!-- Footer -->
         <div class="mt-8 text-center text-[11px] text-[var(--muted)]" in:fade={{ duration: 300, delay: 400 }}>
-            <p>Secure authentication powered by Better Auth</p>
+            <p>
+                Secure authentication powered by Better Auth ·
+                <a
+                    href="https://piecelet.app/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:text-[var(--text)]"
+                >
+                    Terms
+                </a>
+                ·
+                <a
+                    href="https://piecelet.app/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:text-[var(--text)]"
+                >
+                    Privacy
+                </a>
+            </p>
         </div>
     </div>
 </div>
