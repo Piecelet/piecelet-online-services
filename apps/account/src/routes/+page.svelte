@@ -119,6 +119,8 @@
     );
   });
 
+  const topSuggestions = $derived(() => servers.slice(0, 8));
+
   function handleLogin() {
     error = '';
     const value = ($selected?.value ?? $inputValue)?.toString().trim();
@@ -191,6 +193,22 @@
           </div>
         </div>
         <p class="text-xs text-neutral-500">Select from list or type a domain</p>
+
+        <!-- Always-visible light suggestions -->
+        {#if topSuggestions.length > 0}
+          <div class="mt-2 flex flex-wrap gap-2">
+            {#each topSuggestions as s (s.domain)}
+              <button
+                type="button"
+                onclick={() => inputValue.set(s.domain)}
+                class="rounded-full border border-neutral-300/80 px-3 py-1 text-xs text-neutral-800 hover:bg-neutral-100"
+                aria-label={`Use ${s.domain}`}
+              >
+                {s.domain}
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
 
       <button
