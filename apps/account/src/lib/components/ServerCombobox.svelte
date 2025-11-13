@@ -108,13 +108,14 @@
         );
     }
 
-	// Handle input changes
-	function handleInput(combobox: any) {
-		return (e: Event) => {
-			const target = e.currentTarget as HTMLInputElement;
-			onInputChange?.(target.value);
-		};
-	}
+    // Handle input changes: always reflect raw text to bound value
+    function handleInput(combobox: any) {
+        return (e: Event) => {
+            const target = e.currentTarget as HTMLInputElement;
+            value = target.value;
+            onInputChange?.(target.value);
+        };
+    }
 
 	// Handle keyboard for form submission
 	function handleKeyDown(combobox: any) {
