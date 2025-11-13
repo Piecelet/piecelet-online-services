@@ -1,0 +1,35 @@
+{
+  "login_title": "Sign in to Piecelet",
+  "login_subtitle": "Connect your NeoDB account to continue",
+  "button_continue": "Continue",
+  "button_connecting": "Connecting…",
+  "button_validating": "Validating…",
+  "help_no_account": "Don't have a NeoDB account?",
+  "link_get_started": "Get started",
+  "legal_prefix": "By continuing, you agree to our",
+  "legal_terms": "Terms",
+  "legal_privacy": "Privacy Policy",
+  "connector_and": "and",
+
+  "combobox_label_server": "NeoDB Server",
+  "combobox_no_results": "No servers found",
+  "combobox_press_enter_to_use": "Press Enter to use \"{value}\"",
+  "combobox_loading": "Loading servers…",
+  "combobox_type_hint": "Type a domain to continue",
+  "combobox_cant_find_press_enter": "Can't find your server? Press Enter to use custom domain",
+  "combobox_helper": "Select a server or enter your own NeoDB instance domain",
+
+  "cb_completing_title": "Completing sign in…",
+  "cb_completing_desc": "Please wait while we verify your authentication.",
+  "cb_failed_title": "Authentication Failed",
+  "cb_verify_failed": "Failed to verify authentication. Please try again.",
+  "btn_try_again": "Try Again",
+
+  "dash_loading": "Loading…",
+  "dash_sign_out": "Sign Out",
+  "user_placeholder": "User",
+
+  "error_enter_domain": "Please enter a server domain",
+  "error_invalid_domain": "Please enter a valid domain (e.g., neodb.social)",
+  "error_domain_too_long": "Domain name is too long"
+}

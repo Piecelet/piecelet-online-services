@@ -1,0 +1,35 @@
+{
+  "login_title": "登录 Piecelet",
+  "login_subtitle": "连接你的 NeoDB 账户以继续",
+  "button_continue": "继续",
+  "button_connecting": "连接中…",
+  "button_validating": "验证中…",
+  "help_no_account": "还没有 NeoDB 账户？",
+  "link_get_started": "开始使用",
+  "legal_prefix": "继续操作即表示你同意我们的",
+  "legal_terms": "服务条款",
+  "legal_privacy": "隐私政策",
+  "connector_and": "和",
+
+  "combobox_label_server": "NeoDB 服务器",
+  "combobox_no_results": "没有找到服务器",
+  "combobox_press_enter_to_use": "按 Enter 使用\"{value}\"",
+  "combobox_loading": "正在加载服务器…",
+  "combobox_type_hint": "输入域名以继续",
+  "combobox_cant_find_press_enter": "找不到你的服务器？按 Enter 使用自定义域名",
+  "combobox_helper": "选择一个服务器或输入你的 NeoDB 实例域名",
+
+  "cb_completing_title": "正在完成登录…",
+  "cb_completing_desc": "请稍候，我们正在验证你的身份信息。",
+  "cb_failed_title": "认证失败",
+  "cb_verify_failed": "验证登录失败，请重试。",
+  "btn_try_again": "重试",
+
+  "dash_loading": "加载中…",
+  "dash_sign_out": "退出登录",
+  "user_placeholder": "用户",
+
+  "error_enter_domain": "请输入服务器域名",
+  "error_invalid_domain": "请输入有效的域名（例如：neodb.social）",
+  "error_domain_too_long": "域名过长"
+}

@@ -35,19 +35,21 @@ export function sanitizeDomain(domain: string): string {
 /**
  * Validates and returns error message if invalid
  */
+import { t } from '$lib/i18n';
+
 export function validateServerDomain(domain: string): string | null {
 	if (!domain || domain.trim().length === 0) {
-		return 'Please enter a server domain';
+		return t.error_enter_domain();
 	}
 
 	const sanitized = sanitizeDomain(domain);
 
 	if (!isValidDomain(sanitized)) {
-		return 'Please enter a valid domain (e.g., neodb.social)';
+		return t.error_invalid_domain();
 	}
 
 	if (sanitized.length > 253) {
-		return 'Domain name is too long';
+		return t.error_domain_too_long();
 	}
 
 	return null;

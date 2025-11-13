@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
     import Card from '$lib/components/ui/Card.svelte';
     import Button from '$lib/components/ui/Button.svelte';
+    import { t } from '$lib/i18n';
 
 	let error = $state('');
 	let loading = $state(true);
@@ -40,7 +41,7 @@
 			error = 'Authentication failed. Please try again.';
 			loading = false;
 		} catch (err) {
-			error = 'Failed to verify authentication. Please try again.';
+			error = t.cb_verify_failed();
 			loading = false;
 		}
 	});
@@ -55,8 +56,8 @@
         {#if loading}
             <Card class="px-8 py-10">
                 <div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--accent)]"></div>
-                <h2 class="mt-4 text-[17px] font-semibold text-[var(--text)]">Completing sign in…</h2>
-                <p class="mt-1.5 text-[13px] text-[var(--muted)]">Please wait while we verify your authentication.</p>
+                <h2 class="mt-4 text-[17px] font-semibold text-[var(--text)]">{t.cb_completing_title()}</h2>
+                <p class="mt-1.5 text-[13px] text-[var(--muted)]">{t.cb_completing_desc()}</p>
             </Card>
         {:else if error}
             <Card class="px-8 py-10">
@@ -75,10 +76,10 @@
                         />
                     </svg>
                 </div>
-                <h2 class="mt-4 text-[17px] font-semibold text-[var(--text)]">Authentication Failed</h2>
+                <h2 class="mt-4 text-[17px] font-semibold text-[var(--text)]">{t.cb_failed_title()}</h2>
                 <p class="mt-1.5 text-[13px] text-[var(--muted)]">{error}</p>
                 <div class="mt-6">
-                    <Button onclick={handleRetry} class="px-5">Try Again</Button>
+                    <Button onclick={handleRetry} class="px-5">{t.btn_try_again()}</Button>
                 </div>
             </Card>
         {/if}

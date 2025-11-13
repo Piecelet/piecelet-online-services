@@ -4,6 +4,7 @@
   import { Avatar } from 'bits-ui';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import { t } from '$lib/i18n';
 
   const session = useSession();
 
@@ -23,7 +24,7 @@
 <div class="bg-[var(--bg)]">
   <div class="mx-auto flex min-h-[calc(100svh-104px)] w-full max-w-xl flex-col items-center justify-center px-6">
     {#if $session.isPending}
-      <p class="text-[var(--muted)]">Loading…</p>
+      <p class="text-[var(--muted)]">{t.dash_loading()}</p>
     {:else if $session.data}
       <Card class="w-full px-8 py-10 text-center">
         <div class="flex flex-col items-center gap-4">
@@ -34,10 +35,10 @@
             </Avatar.Fallback>
           </Avatar.Root>
           <div class="text-center">
-            <div class="text-[20px] font-semibold text-[var(--text)]">{$session.data.user?.name || 'User'}</div>
+            <div class="text-[20px] font-semibold text-[var(--text)]">{$session.data.user?.name || t.user_placeholder()}</div>
           </div>
           <div class="mt-2">
-            <Button variant="secondary" onclick={handleSignOut}>Sign Out</Button>
+            <Button variant="secondary" onclick={handleSignOut}>{t.dash_sign_out()}</Button>
           </div>
         </div>
       </Card>

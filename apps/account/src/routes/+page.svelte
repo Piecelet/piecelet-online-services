@@ -2,13 +2,14 @@
 	import { onMount } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Card from '$lib/components/ui/Card.svelte';
-	import ErrorMessage from '$lib/components/ui/ErrorMessage.svelte';
-	import ServerCombobox from '$lib/components/ServerCombobox.svelte';
-	import { validateServerDomain, sanitizeDomain } from '$lib/utils/validation';
-	import { getItem, setItem } from '$lib/utils/storage';
-	import { API_URL, STORAGE_KEYS } from '$lib/constants';
+    import Button from '$lib/components/ui/Button.svelte';
+    import Card from '$lib/components/ui/Card.svelte';
+    import ErrorMessage from '$lib/components/ui/ErrorMessage.svelte';
+    import ServerCombobox from '$lib/components/ServerCombobox.svelte';
+    import { validateServerDomain, sanitizeDomain } from '$lib/utils/validation';
+    import { getItem, setItem } from '$lib/utils/storage';
+    import { API_URL, STORAGE_KEYS } from '$lib/constants';
+    import { t } from '$lib/i18n';
 
 	// State management
 	let serverDomain = $state('');
@@ -78,10 +79,10 @@
 		error = null;
 
 		const input = resolvedDomain();
-		if (!input) {
-			error = 'Please enter a server domain';
-			return;
-		}
+        if (!input) {
+            error = t.error_enter_domain();
+            return;
+        }
 
 		const sanitized = sanitizeDomain(input);
 
@@ -120,8 +121,8 @@
     >
 		<!-- Header -->
         <div class="mb-8 text-center" in:fly={{ y: -20, duration: 400, delay: 200, easing: cubicOut }}>
-            <h1 class="text-[32px] font-semibold tracking-[-0.02em] text-[var(--text)]">Sign in to Piecelet</h1>
-            <p class="mt-2 text-[13px] text-[var(--muted)]">Connect your NeoDB account to continue</p>
+            <h1 class="text-[32px] font-semibold tracking-[-0.02em] text-[var(--text)]">{t.login_title()}</h1>
+            <p class="mt-2 text-[13px] text-[var(--muted)]">{t.login_subtitle()}</p>
         </div>
 
 		<!-- Sign in card -->
@@ -158,25 +159,25 @@
                             class="w-full"
                         >
                             {#if isLoading}
-                                Connecting...
+                                {t.button_connecting()}
                             {:else if isValidating}
-                                Validating...
+                                {t.button_validating()}
                             {:else}
-                                Continue
+                                {t.button_continue()}
                             {/if}
                         </Button>
                     </div>
 
                     <!-- Help text -->
                     <!-- <div class="mt-4 text-center text-xs text-[var(--muted)]">
-                        Don't have a NeoDB account?
+                        {t.help_no_account()}
                         <a
                             href="https://neodb.social"
                             target="_blank"
                             rel="noopener noreferrer"
                             class="font-medium text-[var(--accent)] hover:underline focus-visible:underline focus-visible:outline-none"
                         >
-                            Get started
+                            {t.link_get_started()}
                         </a>
                     </div> -->
                 </form>
@@ -186,23 +187,23 @@
 		<!-- Footer -->
         <div class="mt-8 text-center text-[11px] text-[var(--muted)]" in:fade={{ duration: 300, delay: 400 }}>
             <p>
-                By continuing, you agree to our
+                {t.legal_prefix()} 
                 <a
                     href="https://piecelet.app/terms"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="hover:text-[var(--text)]"
                 >
-                    Terms
+                    {t.legal_terms()}
                 </a>
-                and
+                {` ${t.connector_and()} `}
                 <a
                     href="https://piecelet.app/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="hover:text-[var(--text)]"
                 >
-                    Privacy Policy
+                    {t.legal_privacy()}
                 </a>
                 .
             </p>

@@ -9,6 +9,7 @@
         SERVERS_CACHE_TTL_MS
     } from '$lib/constants';
     import { getItem, setItem } from '$lib/utils/storage';
+    import { t } from '$lib/i18n';
 
     interface ServerComboboxProps {
         value: string;
@@ -161,9 +162,7 @@
 <div class="space-y-2">
 	<Combobox bind:value>
 		{#snippet children(combobox)}
-			<label for={combobox.ids.input} class="block text-sm font-medium text-[var(--text)]">
-				NeoDB Instance
-			</label>
+			<label for={combobox.ids.input} class="block text-sm font-medium text-[var(--text)]">{t.combobox_label_server()}</label>
 
             <div class="relative">
                 <!-- Input field -->
@@ -197,22 +196,22 @@
                     {#if filtered.length === 0}
                         <div class="px-3 py-6 text-center text-sm text-[var(--muted)]">
                             {#if combobox.inputValue.trim()}
-                                <div class="space-y-1">
-                                    <div>No servers found</div>
-                                    <div class="text-xs">
-                                        Press <kbd
-                                            class="rounded border border-[var(--border)] bg-[var(--hover)] px-1.5 py-0.5 font-mono text-[10px]"
-                                            >Enter</kbd
-                                            > to use "{combobox.inputValue}"
-                                    </div>
-                                </div>
+										<div class="space-y-1">
+											<div>{t.combobox_no_results()}</div>
+											<div class="text-xs">
+												<span>Press <kbd
+													class="rounded border border-[var(--border)] bg-[var(--hover)] px-1.5 py-0.5 font-mono text-[10px]"
+													>Enter</kbd></span>
+											<span> {t.combobox_press_enter_to_use(combobox.inputValue)}</span>
+											</div>
+										</div>
                             {:else}
                                 <div>
-                                    {#if serversLoading}
-                                        Loading servers…
-                                    {:else}
-                                        Type a domain to continue
-                                    {/if}
+										{#if serversLoading}
+											{t.combobox_loading()}
+										{:else}
+											{t.combobox_type_hint()}
+										{/if}
                                 </div>
                             {/if}
                         </div>
@@ -256,10 +255,9 @@
 									class="mt-1 border-t border-[var(--border)] pt-1.5 text-xs text-[var(--muted)]"
 								>
 									<div class="px-3 py-2">
-										Can't find your server? Press <kbd
-											class="rounded border border-[var(--border)] bg-[var(--hover)] px-1.5 py-0.5 font-mono text-[10px]"
-											>Enter</kbd
-										> to use custom domain
+										<span>{t.combobox_cant_find_press_enter().split('Enter')[0]}</span>
+										<kbd class="rounded border border-[var(--border)] bg-[var(--hover)] px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd>
+										<span>{t.combobox_cant_find_press_enter().split('Enter')[1]}</span>
 									</div>
 								</div>
 							{/if}
@@ -274,9 +272,7 @@
 				</p>
 			{/if}
 
-			<p class="text-xs text-[var(--muted)]">
-				Select or enter the address of your NeoDB instance.
-			</p>
+			<p class="text-xs text-[var(--muted)]">{t.combobox_helper()}</p>
 		{/snippet}
 	</Combobox>
 </div>
