@@ -1,7 +1,14 @@
 <script lang="ts">
-	import { Combobox } from 'melt/components';
-	import { fly } from 'svelte/transition';
-	import { NEODB_SERVERS } from '$lib/constants';
+    import { Combobox } from 'melt/components';
+    import { fly } from 'svelte/transition';
+    import { onMount } from 'svelte';
+    import {
+        NEODB_SERVERS,
+        PUBLIC_SERVERS_ENDPOINT,
+        STORAGE_KEYS,
+        SERVERS_CACHE_TTL_MS
+    } from '$lib/constants';
+    import { getItem, setItem } from '$lib/utils/storage';
 
 	interface ServerComboboxProps {
 		value: string;
@@ -19,27 +26,87 @@
 		onSubmit
 	}: ServerComboboxProps = $props();
 
-	// Filter servers based on input value
-	function getFilteredServers(combobox: any) {
-		const query = combobox.inputValue.trim().toLowerCase();
+    /** Public servers state (autofill list) */
+    type ServerItem = { value: string; description: string };
+    let servers = $state<ServerItem[]>([...NEODB_SERVERS]);
+    let serversLoaded = $state(false);
+    let serversLoading = $state(false);
 
-		// If not touched yet, show all servers
-		if (!combobox.touched) {
-			return NEODB_SERVERS;
-		}
+    // Load servers from cache or network
+    onMount(async () => {
+        try {
+            // Try cache first
+            const cached = getItem(STORAGE_KEYS.SERVERS_CACHE);
+            const cachedAtStr = getItem(STORAGE_KEYS.SERVERS_CACHE_AT);
+            const cachedAt = cachedAtStr ? Number(cachedAtStr) : 0;
+            const fresh = cached && cachedAt && Date.now() - cachedAt < SERVERS_CACHE_TTL_MS;
 
-		// If no query, show all
-		if (!query) {
-			return NEODB_SERVERS;
-		}
+            if (fresh) {
+                const parsed = JSON.parse(cached) as any[];
+                const mapped = normalizeServers(parsed);
+                if (mapped.length) {
+                    servers = mapped;
+                    serversLoaded = true;
+                    return;
+                }
+            }
 
-		// Filter based on value or description
-		return NEODB_SERVERS.filter(
-			(server) =>
-				server.value.toLowerCase().includes(query) ||
-				server.description.toLowerCase().includes(query)
-		);
-	}
+            serversLoading = true;
+            const res = await fetch(PUBLIC_SERVERS_ENDPOINT, { mode: 'cors' });
+            if (res.ok) {
+                const data = (await res.json()) as any[];
+                const mapped = normalizeServers(data);
+                if (mapped.length) {
+                    servers = mapped;
+                    setItem(STORAGE_KEYS.SERVERS_CACHE, JSON.stringify(mapped));
+                    setItem(STORAGE_KEYS.SERVERS_CACHE_AT, String(Date.now()));
+                }
+            }
+        } catch (e) {
+            // Silently fall back to built-in list
+            console.warn('Failed to load public servers, using fallback list');
+        } finally {
+            serversLoaded = true;
+            serversLoading = false;
+        }
+    });
+
+    // Normalize possible API shapes to { value, description }
+    function normalizeServers(arr: any[]): ServerItem[] {
+        if (!Array.isArray(arr)) return [];
+        return arr
+            .map((item) => {
+                if (!item) return null;
+                if (typeof item === 'string') return { value: item, description: '' };
+                const value = item.value || item.domain || item.host || item.name || '';
+                const description = item.description || item.label || item.title || '';
+                if (typeof value !== 'string' || value.trim() === '') return null;
+                return { value: value.trim(), description: String(description || '').trim() };
+            })
+            .filter(Boolean) as ServerItem[];
+    }
+
+    // Filter servers based on input value
+    function getFilteredServers(combobox: any) {
+        const query = combobox.inputValue.trim().toLowerCase();
+
+        // If not touched yet, show all servers
+        if (!combobox.touched) {
+            return servers;
+        }
+
+        // If no query, show all
+        if (!query) {
+            return servers;
+        }
+
+        // Filter based on value or description
+        return servers.filter(
+            (server) =>
+                server.value.toLowerCase().includes(query) ||
+                server.description.toLowerCase().includes(query)
+        );
+    }
 
 	// Handle input changes
 	function handleInput(combobox: any) {
@@ -93,22 +160,28 @@
                         class="absolute z-50 mt-1 w-full max-h-80 overflow-auto round border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-lg"
                     >
 
-						{#if filtered.length === 0}
-							<div class="px-3 py-6 text-center text-sm text-[var(--muted)]">
-								{#if combobox.inputValue.trim()}
-									<div class="space-y-1">
-										<div>No servers found</div>
-										<div class="text-xs">
-											Press <kbd
-												class="rounded border border-[var(--border)] bg-[var(--hover)] px-1.5 py-0.5 font-mono text-[10px]"
-												>Enter</kbd
-											> to use "{combobox.inputValue}"
-										</div>
-									</div>
-								{:else}
-									<div>Type a domain to continue</div>
-								{/if}
-							</div>
+                    {#if filtered.length === 0}
+                        <div class="px-3 py-6 text-center text-sm text-[var(--muted)]">
+                            {#if combobox.inputValue.trim()}
+                                <div class="space-y-1">
+                                    <div>No servers found</div>
+                                    <div class="text-xs">
+                                        Press <kbd
+                                            class="rounded border border-[var(--border)] bg-[var(--hover)] px-1.5 py-0.5 font-mono text-[10px]"
+                                            >Enter</kbd
+                                            > to use "{combobox.inputValue}"
+                                    </div>
+                                </div>
+                            {:else}
+                                <div>
+                                    {#if serversLoading}
+                                        Loading servers…
+                                    {:else}
+                                        Type a domain to continue
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
 						{:else}
 							{#each filtered as server (server.value)}
 								{@const option = combobox.getOption(server.value, server.value)}
