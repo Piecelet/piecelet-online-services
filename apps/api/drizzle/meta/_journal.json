@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1749249948625,
-      "tag": "0000_groovy_manta",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1763019919098,
-      "tag": "0001_slim_stephen_strange",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1763020728355,
-      "tag": "0002_tiny_captain_universe",
+      "when": 1763025435954,
+      "tag": "0000_powerful_zeigeist",
       "breakpoints": true
     }
   ]

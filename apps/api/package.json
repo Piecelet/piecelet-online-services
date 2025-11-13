@@ -5,6 +5,7 @@
     "build": "npx tsc --noEmit",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+		"prepare:db:dev": "npm run auth:update && npm run db:generate && npm run db:migrate:dev",
     "auth:generate": "npx --yes @better-auth/cli@latest generate --config src/auth/index.ts --output src/db/auth.schema.ts -y",
     "auth:format": "npx --yes prettier --write src/db/auth.schema.ts",
     "auth:update": "npm run auth:generate && npm run auth:format",
@@ -16,7 +17,7 @@
   },
   "dependencies": {
     "better-auth": "^1.2.8",
-    "better-auth-cloudflare": "latest",
+    "better-auth-cloudflare": "^0.2.8",
     "drizzle-orm": "^0.44.5",
     "hono": "^4.7.11"
   },
