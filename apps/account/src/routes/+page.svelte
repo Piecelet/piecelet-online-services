@@ -189,7 +189,7 @@
             <p>
                 {t.legal_prefix()} 
                 <a
-                    href="https://piecelet.app/terms"
+                    href="https://connect.piecelet.app/terms"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="hover:text-[var(--text)]"
@@ -198,7 +198,7 @@
                 </a>
                 {` ${t.connector_and()} `}
                 <a
-                    href="https://piecelet.app/privacy"
+                    href="https://connect.piecelet.app/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="hover:text-[var(--text)]"

@@ -37,7 +37,7 @@ type Messages = {
 };
 
 const en: Messages = {
-  login_title: 'Sign in to Piecelet',
+  login_title: 'Sign in to Piecelet Connect',
   login_subtitle: 'Connect your NeoDB account to continue',
   button_continue: 'Continue',
   button_connecting: 'Connecting…',
@@ -73,7 +73,7 @@ const en: Messages = {
 };
 
 const zhCN: Messages = {
-  login_title: '登录 Piecelet',
+  login_title: '登录 Piecelet Connect',
   login_subtitle: '连接你的 NeoDB 账户以继续',
   button_continue: '继续',
   button_connecting: '连接中…',
@@ -109,7 +109,7 @@ const zhCN: Messages = {
 };
 
 const zhTW: Messages = {
-  login_title: '登入 Piecelet',
+  login_title: '登入 Piecelet Connect',
   login_subtitle: '連接你的 NeoDB 帳號以繼續',
   button_continue: '繼續',
   button_connecting: '連線中…',
@@ -201,4 +201,3 @@ export const t = {
   error_invalid_domain: () => messages[cur()].error_invalid_domain,
   error_domain_too_long: () => messages[cur()].error_domain_too_long
 };
-

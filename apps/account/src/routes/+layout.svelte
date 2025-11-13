@@ -14,12 +14,10 @@
   <div class="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
     <a href="/" class="flex items-center gap-2 text-[var(--text)]">
       <span class="inline-block size-2.5 rounded-full bg-[var(--accent)]"></span>
-      <span class="text-sm font-semibold tracking-[-0.01em]">Piecelet Account</span>
+      <span class="text-sm font-semibold tracking-[-0.01em]">Piecelet Connect</span>
     </a>
     <nav class="flex items-center gap-3 text-xs text-[var(--muted)]">
-      <a href="https://piecelet.app" target="_blank" rel="noreferrer" class="hover:text-[var(--text)]">piecelet.app</a>
-      <span aria-hidden="true" class="select-none">•</span>
-      <a href="https://status.piecelet.app" target="_blank" rel="noreferrer" class="hover:text-[var(--text)]">status</a>
+      <a href="https://piecelet.app" target="_blank" rel="noreferrer" class="hover:text-[var(--text)]">to Piecelet for NeoDB</a>
     </nav>
   </div>
   </header>
