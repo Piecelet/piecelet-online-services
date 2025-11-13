@@ -7,6 +7,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { schema } from "../db";
 import type { CloudflareBindings } from "../env";
 import { neodbOAuthPlugin } from "../neodb/plugin";
+import { ALL_ALLOWED_ORIGINS } from "../config/origins";
 
 // Single auth configuration that handles both CLI and runtime scenarios
 function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) {
@@ -38,6 +39,7 @@ function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) 
                 rateLimit: {
                     enabled: true,
                 },
+                trustedOrigins: [...ALL_ALLOWED_ORIGINS],
             }
         ),
         // Only add database adapter for CLI schema generation

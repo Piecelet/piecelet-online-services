@@ -11,6 +11,8 @@ This example demonstrates how to integrate [Better Auth](https://github.com/bett
 - 🌐 **Cloudflare IP Detection**: Automatic IP address detection
 - 👤 **Anonymous Authentication**: Built-in anonymous user authentication
 - 🔐 **Session Management**: Secure session handling with geolocation
+- 🌐 **NeoDB OAuth**: OAuth authentication with NeoDB instances
+- 🔒 **Smart CORS**: Dynamic CORS configuration for development and production
 
 ## Getting Started
 
@@ -130,6 +132,27 @@ wrangler.toml            # Cloudflare Worker configuration
 - `POST /api/auth/sign-out` - Sign out
 - `GET /api/auth/get-session` - Get current session
 - `GET /api/auth/cloudflare/geolocation` - Get geolocation data
+- `GET /api/auth/neodb/start` - Start NeoDB OAuth flow
+- `GET /api/auth/neodb/callback` - NeoDB OAuth callback
+
+### CORS Configuration
+
+The API uses smart CORS configuration that automatically allows requests from:
+
+**Development Origins:**
+- `http://localhost:5173` (default Vite dev server)
+- `http://localhost:5174`, `http://localhost:5175` (alternative ports)
+- `http://localhost:4173` (Vite preview)
+- `http://127.0.0.1:5173`
+
+**Production Origins:**
+- `https://account.piecelet.app`
+- `https://online.piecelet.app`
+- `https://services.piecelet.app`
+- `https://www.piecelet.app`
+- `https://piecelet.app`
+
+For detailed CORS configuration and troubleshooting, see [CORS.md](./CORS.md).
 
 ### Geolocation Tracking
 

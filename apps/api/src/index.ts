@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAuth } from "./auth";
 import type { CloudflareBindings } from "./env";
+import { getAllowedOrigin } from "./config/origins";
 
 type Variables = {
     auth: ReturnType<typeof createAuth>;
@@ -9,14 +10,14 @@ type Variables = {
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: Variables }>();
 
-// CORS configuration for auth routes
+// CORS configuration for all routes
 app.use(
-    "/api/auth/**",
+    "*",
     cors({
-        origin: "*", // In production, replace with your actual domain
-        allowHeaders: ["Content-Type", "Authorization"],
-        allowMethods: ["POST", "GET", "OPTIONS"],
-        exposeHeaders: ["Content-Length"],
+        origin: getAllowedOrigin,
+        allowHeaders: ["Content-Type", "Authorization", "Cookie"],
+        allowMethods: ["POST", "GET", "OPTIONS", "PUT", "DELETE"],
+        exposeHeaders: ["Content-Length", "Set-Cookie"],
         maxAge: 600,
         credentials: true,
     })
