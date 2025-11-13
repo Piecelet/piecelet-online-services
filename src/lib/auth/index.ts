@@ -9,43 +9,51 @@ import { withCloudflare } from "better-auth-cloudflare";
 
 // Single auth configuration that handles both CLI and runtime scenarios
 function createAuth(env?: Cloudflare.Env, cf?: IncomingRequestCfProperties) {
-    // Use actual DB for runtime, empty object for CLI
-    const db = env ? drizzle(env.ACCOUNT_DATABASE, { schema, logger: true }) : ({} as any);
+    console.log('[auth] createAuth called', { hasEnv: !!env, hasCf: !!cf });
 
+    // For runtime with Cloudflare env
+    if (env) {
+        const db = drizzle(env.ACCOUNT_DATABASE, { schema, logger: true });
+        console.log('[auth] Using runtime Cloudflare configuration with D1');
+
+        const auth = betterAuth(
+            withCloudflare(
+                {
+                    autoDetectIpAddress: true,
+                    geolocationTracking: true,
+                    cf: cf || {},
+                    d1: {
+                        db,
+                        options: {
+                            usePlural: true,
+                            debugLogs: true,
+                        },
+                    },
+                    // kv: env?.ACCOUNT_KV,
+                },
+                {
+                    emailAndPassword: { enabled: false },
+                    plugins: [neodbOAuthPlugin, sveltekitCookies(getRequestEvent)],
+                }
+            )
+        );
+
+        return auth;
+    }
+
+    // For CLI schema generation
+    console.log('[auth] Using CLI configuration with empty adapter');
     const auth = betterAuth({
-        ...withCloudflare(
-            {
-                autoDetectIpAddress: true,
-                geolocationTracking: true,
-                cf: cf || {},
-                d1: env
-                    ? {
-                          db,
-                          options: {
-                              usePlural: true,
-                              debugLogs: true,
-                          },
-                      }
-                    : undefined,
-                // kv: env?.ACCOUNT_KV,
-            },{
-      emailAndPassword: { enabled: false },
-      database: db,
-      plugins: [neodbOAuthPlugin, sveltekitCookies(getRequestEvent)],
+        emailAndPassword: { enabled: false },
+        database: drizzleAdapter({} as D1Database, {
+            provider: "sqlite",
+            usePlural: true,
+            debugLogs: true,
         }),
-        // Only add database adapter for CLI schema generation
-        ...(env
-            ? {}
-            : {
-                  database: drizzleAdapter({} as D1Database, {
-                      provider: "sqlite",
-                      usePlural: true,
-                      debugLogs: true
-                  }),
-              }),
+        plugins: [neodbOAuthPlugin, sveltekitCookies(getRequestEvent)],
     });
 
-    return auth
+    return auth;
 }
 
 // Export for CLI schema generation

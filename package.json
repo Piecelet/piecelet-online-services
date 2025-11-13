@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-    	"dev": "wrangler dev",
+    	"dev": "wrangler dev .svelte-kit/cloudflare",
 		"dev:vite": "vite dev",
     	"build": "npx tsc --noEmit",
 		"build:vite": "vite build",

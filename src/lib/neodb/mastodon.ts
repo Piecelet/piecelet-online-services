@@ -39,10 +39,17 @@ export async function registerMastodonApp(base: URL, redirectUri: string): Promi
 }
 
 export async function getOrCreateClient(adapter: Adapter, base: URL, redirectUri: string): Promise<NeoDBClient> {
+  console.log('[neodb] getOrCreateClient called for instance:', base.origin);
   const existing = await getClient(adapter, base.origin);
-  if (existing && existing.redirect_uri === redirectUri) return existing;
+  if (existing && existing.redirect_uri === redirectUri) {
+    console.log('[neodb] Using existing client');
+    return existing;
+  }
+  console.log('[neodb] Registering new Mastodon app');
   const c = await registerMastodonApp(base, redirectUri);
+  console.log('[neodb] Registration successful, saving client');
   await saveClient(adapter, c);
+  console.log('[neodb] Client saved');
   return c;
 }
 

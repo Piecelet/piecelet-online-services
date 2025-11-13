@@ -5,6 +5,7 @@ import type { BetterAuthPlugin } from "better-auth";
 
 import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, extractNeoDBUserInfo } from "./util";
 import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe } from "./mastodon";
+import { saveState, popState, getClient } from "./store";
 import type { NeoDBMe, AuthResultData } from "./types";
 
 function buildAccountId(me: NeoDBMe, instanceHost: string): string {
@@ -86,18 +87,28 @@ export const neodbOAuthPlugin = {
         const instanceRaw = url.searchParams.get("instance") || "";
         const callbackURL = url.searchParams.get("callbackURL") || "/";
 
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('[neodb] /neodb/start endpoint called');
+        console.log('[neodb] Instance:', instanceRaw);
+        console.log('[neodb] Callback URL:', callbackURL);
+
         const adapter = ctx.context.adapter;
         if (!adapter) {
+          console.error('[neodb] ❌ ERROR: Database adapter unavailable');
           const target = new URL(ctx.context.options.onAPIError?.errorURL || `${ctx.context.baseURL}/error`);
           target.searchParams.set("error", "database_unavailable");
           throw ctx.redirect(target.toString());
         }
+        console.log('[neodb] ✓ Database adapter available');
 
         let instanceURL: URL;
         try {
           instanceURL = normalizeInstance(instanceRaw);
+          console.log('[neodb] Normalized instance URL:', instanceURL.origin);
           await assertIsNeoDBInstance(instanceURL);
+          console.log('[neodb] ✓ Instance validation passed');
         } catch (e: unknown) {
+          console.error('[neodb] ❌ ERROR: Instance validation failed:', e);
           const target = new URL(ctx.context.options.onAPIError?.errorURL || `${ctx.context.baseURL}/error`);
           const message = e instanceof Error ? e.message : "invalid_instance";
           target.searchParams.set("error", message);
@@ -105,21 +116,32 @@ export const neodbOAuthPlugin = {
         }
 
         const redirectUri = `${ctx.context.baseURL}/neodb/callback`;
+        console.log('[neodb] Redirect URI:', redirectUri);
+
         let client;
         try {
+          console.log('[neodb] Getting or creating OAuth client...');
           client = await getOrCreateClient(adapter, instanceURL, redirectUri);
+          console.log('[neodb] ✓ Client obtained successfully');
         } catch (e: unknown) {
+          console.error('[neodb] ❌ ERROR: getOrCreateClient failed');
+          console.error('[neodb] Error details:', e);
           const target = new URL(ctx.context.options.onAPIError?.errorURL || `${ctx.context.baseURL}/error`);
           const message = e instanceof Error ? e.message : "app_registration_failed";
           target.searchParams.set("error", message);
           throw ctx.redirect(target.toString());
         }
 
+        console.log('[neodb] Generating OAuth state...');
         const { state, codeVerifier } = await generateState(ctx);
         await saveState(adapter, state, instanceURL.origin, callbackURL);
         const codeChallenge = await pkceChallengeFromVerifier(codeVerifier);
+        console.log('[neodb] ✓ State saved');
 
-        const urlStr = buildAuthorizeUrl(instanceURL.origin, client.clientId, redirectUri, state, codeChallenge);
+        const urlStr = buildAuthorizeUrl(instanceURL.origin, client.client_id, redirectUri, state, codeChallenge);
+        console.log('[neodb] ✓ Redirecting to authorization URL');
+        console.log('[neodb] Target:', urlStr);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         throw ctx.redirect(urlStr);
       },
     ),
