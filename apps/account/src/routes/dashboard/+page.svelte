@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { useSession, signOut } from '$lib/auth';
+  import { Avatar } from 'bits-ui';
 
   const session = useSession();
 
@@ -23,13 +24,12 @@
       <p class="text-neutral-600">Loading…</p>
     {:else if $session.data}
       <div class="flex flex-col items-center gap-4">
-        {#if $session.data.user?.image}
-          <img src={$session.data.user.image} alt="avatar" class="h-20 w-20 rounded-full object-cover" />
-        {:else}
-          <div class="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-200 text-xl font-medium text-neutral-700">
+        <Avatar.Root class="h-20 w-20 rounded-full">
+          <Avatar.Image src={$session.data.user?.image} alt="avatar" class="h-full w-full rounded-full object-cover" />
+          <Avatar.Fallback class="flex h-full w-full items-center justify-center rounded-full bg-neutral-200 text-xl font-medium text-neutral-700">
             {($session.data.user?.name?.[0] || 'U').toUpperCase()}
-          </div>
-        {/if}
+          </Avatar.Fallback>
+        </Avatar.Root>
         <div class="text-center">
           <div class="text-xl font-semibold text-neutral-900">{$session.data.user?.name || 'User'}</div>
         </div>

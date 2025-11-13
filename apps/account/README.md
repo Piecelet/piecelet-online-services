@@ -85,7 +85,7 @@ src/
 
 ### Server List
 
-On the login page, the NeoDB server field is a Combobox (unstyled Melt UI) which:
+On the login page, the NeoDB server field uses a Bits UI Combobox which:
 - Prefills suggestions from `https://neodb-public-api.piecelet.app/servers` (domain + description)
 - Allows manual entry of a domain (e.g., `neodb.social`)
 
@@ -107,9 +107,9 @@ Make sure to set the `VITE_API_URL` environment variable in your Cloudflare Page
 
 ## Technologies
 
-- **SvelteKit 2**: Application framework
-- **Svelte 5**: UI framework with runes
-- **Better Auth**: Authentication client
-- **Tailwind CSS 4**: Styling
-- **TypeScript**: Type safety
-- **Cloudflare Pages**: Hosting platform
+- SvelteKit 2 + Svelte 5 (runes)
+- Bits UI (headless components)
+- Tailwind CSS 4
+- Better Auth
+- TypeScript
+- Cloudflare Pages

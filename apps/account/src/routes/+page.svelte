@@ -1,8 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import { useSession } from '$lib/auth';
   import { onMount } from 'svelte';
-  import { createCombobox } from '@melt-ui/svelte';
+  import { Combobox } from 'bits-ui';
 
   type Server = { domain: string; description?: string };
 
@@ -10,9 +11,16 @@
   let error = $state('');
   let loading = $state(false);
   let fetchingServers = $state(true);
+  let autoOpened = $state(false);
 
   const session = useSession();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+
+  // Debug toggle via query (?debug=1) or dev mode
+  const debugFlag = $derived(() => $page.url.searchParams.get('debug') === '1' || import.meta.env.DEV);
+  function log(...args: any[]) {
+    if (debugFlag) console.log('[account/login]', ...args);
+  }
 
   // Redirect to dashboard if already logged in
   $effect(() => {
@@ -22,25 +30,37 @@
   });
 
   onMount(async () => {
+    log('onMount → loadServers()');
     await loadServers();
   });
 
   async function loadServers() {
     fetchingServers = true;
     try {
-      const res = await fetch('https://neodb-public-api.piecelet.app/servers', { cache: 'no-store' });
-      if (!res.ok) throw new Error('bad status');
+      const url = 'https://neodb-public-api.piecelet.app/servers';
+      log('loadServers: fetching', url);
+      const res = await fetch(url, { cache: 'no-store' });
+      log('loadServers: status', res.status, res.statusText);
+      if (!res.ok) throw new Error(`bad status ${res.status}`);
       const data = await res.json();
+      log('loadServers: raw type', Array.isArray(data) ? 'array' : typeof data);
+      if (Array.isArray(data)) log('loadServers: raw sample', data.slice(0, 3));
+      else if (data && typeof data === 'object') log('loadServers: raw keys', Object.keys(data).slice(0, 8));
       servers = normalizeServers(data);
+      log('loadServers: normalized length', servers.length, 'sample', servers.slice(0, 5));
     } catch (e) {
-      // Fallback list so there is always at least one suggestion
-      servers = [{ domain: 'neodb.social', description: 'NeoDB default' }];
+      log('loadServers: error', e);
+      // No fallback — if none, show none
+      servers = [];
     } finally {
-      // Ensure there is at least one item
-      if (!servers || servers.length === 0) {
-        servers = [{ domain: 'neodb.social', description: 'NeoDB default' }];
-      }
       fetchingServers = false;
+      log('loadServers: done. servers length =', servers.length);
+      // Auto-open menu on first successful load if nothing typed/selected
+      if (!autoOpened && servers.length > 0 && !value && !search) {
+        autoOpened = true;
+        open = true;
+        log('loadServers: auto-opened menu');
+      }
     }
   }
 
@@ -48,9 +68,11 @@
     // If array of strings
     if (Array.isArray(data)) {
       if (data.length > 0 && typeof data[0] === 'string') {
+        log('normalizeServers: array-of-strings');
         return (data as string[]).map((d) => ({ domain: d }));
       }
       // Array of objects
+      log('normalizeServers: array-of-objects');
       return (data as any[])
         .map((item) => {
           if (!item || typeof item !== 'object') return null;
@@ -67,10 +89,14 @@
     // If object with known keys
     if (data && typeof data === 'object') {
       // Nested `servers` key
-      if (Array.isArray(data.servers)) return normalizeServers(data.servers);
+      if (Array.isArray(data.servers)) {
+        log('normalizeServers: using data.servers');
+        return normalizeServers(data.servers);
+      }
 
       // domains + descriptions arrays aligned by index
       if (Array.isArray(data.domains)) {
+        log('normalizeServers: domains + descriptions arrays');
         const descArr = Array.isArray(data.descriptions) ? data.descriptions : [];
         return (data.domains as any[])
           .map((d: any, i: number) => {
@@ -84,35 +110,32 @@
       // Object map { domain: description }
       const entries = Object.entries(data as Record<string, any>);
       if (entries.length > 0) {
+        log('normalizeServers: kv-map candidate entries', entries.slice(0, 5));
         const mapped = entries
           .map(([k, v]) => {
             if (k.includes('.')) return { domain: k, description: typeof v === 'string' ? v : undefined } as Server;
             return null;
           })
           .filter(Boolean) as Server[];
-        if (mapped.length > 0) return mapped;
+        if (mapped.length > 0) {
+          log('normalizeServers: kv-map matched length', mapped.length);
+          return mapped;
+        }
       }
     }
 
     return [];
   }
 
-  const {
-    elements: { input, menu, option },
-    states: { selected, inputValue, open }
-  } = createCombobox({});
-
-  // Reflect selected item into input value for click selection UX
-  $effect(() => {
-    const sel = $selected;
-    if (sel) {
-      inputValue.set((sel.label ?? sel.value ?? '').toString());
-    }
-  });
+  // Combobox state for Bits UI
+  let open = $state(false);
+  let value = $state('');
+  let search = $state('');
 
   // Filter suggestions as user types (client-side)
   const filteredServers = $derived(() => {
-    const q = ($inputValue || '').toLowerCase().trim();
+    const q = (search || '').toLowerCase().trim();
+    if (q) log('filter', q);
     if (!q) return servers;
     return servers.filter((s) =>
       s.domain.toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q)
@@ -123,14 +146,17 @@
 
   function handleLogin() {
     error = '';
-    const value = ($selected?.value ?? $inputValue)?.toString().trim();
-    if (!value) {
+    const domain = (value || search).toString().trim();
+    log('handleLogin value =', domain);
+    if (!domain) {
       error = 'Please select or enter a server domain';
+      log('handleLogin error: empty value');
       return;
     }
     loading = true;
     const callbackURL = window.location.origin + '/auth/callback';
-    const authURL = `${API_URL}/api/auth/neodb/start?instance=${encodeURIComponent(value)}&callbackURL=${encodeURIComponent(callbackURL)}`;
+    const authURL = `${API_URL}/api/auth/neodb/start?instance=${encodeURIComponent(domain)}&callbackURL=${encodeURIComponent(callbackURL)}`;
+    log('redirect →', authURL);
     window.location.href = authURL;
   }
 
@@ -140,6 +166,14 @@
       handleLogin();
     }
   }
+
+  // Trace menu state and input typing
+  $effect(() => log('open =', open));
+  $effect(() => log('inputValue/search =', search));
+  $effect(() => {
+    log('value changed →', value);
+    if (value && value !== search) search = value;
+  });
 
   // no-op helper removed for minimal surface
 </script>
@@ -160,37 +194,31 @@
         <label class="block text-sm font-medium text-neutral-800">NeoDB Server</label>
 
         <div class="relative">
-          <input
-            use:input
-            onfocus={() => open.set(true)}
-            onkeydown={onInputKeyDown}
-            placeholder="neodb.social"
-            disabled={loading}
-            class="w-full rounded-xl border border-neutral-300/80 bg-white px-3 py-2.5 text-[15px] text-neutral-900 outline-none ring-0 transition focus-visible:border-[rgb(48_102_92)] focus-visible:ring-2 focus-visible:ring-[rgb(48_102_92)] disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
-          />
-          <!-- Dropdown menu -->
-          <div
-            use:menu
-            class="z-50 mt-1 max-h-72 overflow-auto rounded-xl border border-neutral-200 bg-white p-1.5"
-          >
-            {#if filteredServers.length === 0}
-              <div class="px-3 py-2 text-sm text-neutral-500">
-                {fetchingServers ? 'Loading servers…' : 'No suggestions. Type to enter manually.'}
-              </div>
-            {:else}
-              {#each filteredServers as s (s.domain)}
-                <div
-                  use:option={{ value: s.domain, label: s.domain }}
-                  class="cursor-pointer rounded-lg px-3 py-2 text-[15px] text-neutral-900 data-[highlighted]:bg-neutral-100"
-                >
-                  <div class="font-medium">{s.domain}</div>
-                  {#if s.description}
-                    <div class="text-xs text-neutral-500">{s.description}</div>
-                  {/if}
+          <Combobox.Root bind:open={open} bind:value={value}>
+            <Combobox.Input
+              placeholder="neodb.social"
+              disabled={loading}
+              on:keydown={onInputKeyDown}
+              on:input={(e) => (search = (e.currentTarget as HTMLInputElement).value)}
+              class="w-full rounded-xl border border-neutral-300/80 bg-white px-3 py-2.5 text-[15px] text-neutral-900 outline-none ring-0 transition focus-visible:border-[rgb(48_102_92)] focus-visible:ring-2 focus-visible:ring-[rgb(48_102_92)] disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
+            />
+            <Combobox.Content class="z-50 mt-1 max-h-72 overflow-auto rounded-xl border border-neutral-200 bg-white p-1.5">
+              {#if filteredServers.length === 0}
+                <div class="px-3 py-2 text-sm text-neutral-500">
+                  {fetchingServers ? 'Loading servers…' : 'No suggestions. Type to enter manually.'}
                 </div>
-              {/each}
-            {/if}
-          </div>
+              {:else}
+                {#each filteredServers as s (s.domain)}
+                  <Combobox.Item value={s.domain} class="cursor-pointer rounded-lg px-3 py-2 text-[15px] text-neutral-900 data-[highlighted]:bg-neutral-100">
+                    <div class="font-medium">{s.domain}</div>
+                    {#if s.description}
+                      <div class="text-xs text-neutral-500">{s.description}</div>
+                    {/if}
+                  </Combobox.Item>
+                {/each}
+              {/if}
+            </Combobox.Content>
+          </Combobox.Root>
         </div>
         <p class="text-xs text-neutral-500">Select from list or type a domain</p>
 
@@ -200,7 +228,10 @@
             {#each topSuggestions as s (s.domain)}
               <button
                 type="button"
-                onclick={() => inputValue.set(s.domain)}
+                onclick={() => {
+                  value = s.domain;
+                  search = s.domain;
+                }}
                 class="rounded-full border border-neutral-300/80 px-3 py-1 text-xs text-neutral-800 hover:bg-neutral-100"
                 aria-label={`Use ${s.domain}`}
               >
