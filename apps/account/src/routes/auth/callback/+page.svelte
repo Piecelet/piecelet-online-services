@@ -51,13 +51,13 @@
 <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
 	<div class="w-full max-w-md text-center">
 		{#if loading}
-			<div class="rounded-lg bg-white px-8 py-12 shadow-md">
+    			<div class="rounded-2xl bg-white px-8 py-12 border border-neutral-200">
 				<div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-[rgb(48_102_92)]"></div>
 				<h2 class="mt-4 text-lg font-semibold text-gray-900">Completing sign in...</h2>
 				<p class="mt-2 text-sm text-gray-600">Please wait while we verify your authentication.</p>
 			</div>
 		{:else if error}
-			<div class="rounded-lg bg-white px-8 py-12 shadow-md">
+    			<div class="rounded-2xl bg-white px-8 py-12 border border-neutral-200">
 				<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
 					<svg
 						class="h-6 w-6 text-red-600"
