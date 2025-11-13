@@ -1,29 +1,26 @@
-name: Deploy API to Cloudflare Workers
+name: Deploy to Cloudflare Workers
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'apps/api/**'
+      - 'apps/**'
       - 'packages/**'
-      - '.github/workflows/deploy-api.yml'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 concurrency:
-  group: deploy-api-${{ github.ref }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
+  deploy-api:
     name: Deploy API Worker
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/api
 
     steps:
       - name: Checkout repository
@@ -32,7 +29,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -42,9 +39,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: .
 
-      - name: Generate wrangler.jsonc from template
+      - name: Generate API wrangler.jsonc from template
+        working-directory: apps/api
         run: |
           # Read the template file
           TEMPLATE_CONTENT=$(cat wrangler-template.jsonc)
@@ -58,32 +55,92 @@ jobs:
           # Write the configured wrangler.jsonc
           echo "$WRANGLER_CONFIG" > wrangler.jsonc
 
-          echo "✅ Generated wrangler.jsonc with secrets"
+          echo "✅ Generated API wrangler.jsonc with secrets"
 
-      - name: Validate wrangler configuration
+      - name: Validate API wrangler configuration
+        working-directory: apps/api
         run: |
           if grep -q "<ACCOUNT_DATABASE_NAME>" wrangler.jsonc || \
              grep -q "<ACCOUNT_DATABASE_ID>" wrangler.jsonc || \
              grep -q "<ACCOUNT_KV_NAMESPACE_ID>" wrangler.jsonc; then
-            echo "❌ Error: Placeholders still found in wrangler.jsonc"
+            echo "❌ Error: Placeholders still found in API wrangler.jsonc"
             echo "Please ensure all required secrets are set in GitHub repository settings:"
             echo "  - ACCOUNT_DATABASE_NAME"
             echo "  - ACCOUNT_DATABASE_ID"
             echo "  - ACCOUNT_KV_NAMESPACE_ID"
             exit 1
           fi
-          echo "✅ All placeholders replaced successfully"
+          echo "✅ All API placeholders replaced successfully"
 
-      - name: Build project
-        run: pnpm run build
-
-      - name: Deploy to Cloudflare Workers
+      - name: Build and deploy API
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          echo "🚀 Deploying to Cloudflare Workers..."
-          pnpm run deploy
+          echo "🚀 Deploying API to Cloudflare Workers..."
+          pnpm --filter api run deploy
 
-      - name: Clean up generated wrangler.jsonc
+      - name: Clean up generated API wrangler.jsonc
         if: always()
+        working-directory: apps/api
+        run: rm -f wrangler.jsonc
+
+  deploy-account:
+    name: Deploy Account Worker
+    runs-on: ubuntu-latest
+    needs: deploy-api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Account wrangler.jsonc from template
+        working-directory: apps/account
+        run: |
+          # Read the template file
+          TEMPLATE_CONTENT=$(cat wrangler-template.jsonc)
+
+          # Replace placeholders with actual values from secrets
+          WRANGLER_CONFIG=$(echo "$TEMPLATE_CONTENT" | \
+            sed "s|<BACKEND_API_URL>|${{ secrets.BACKEND_API_URL }}|g")
+
+          # Write the configured wrangler.jsonc
+          echo "$WRANGLER_CONFIG" > wrangler.jsonc
+
+          echo "✅ Generated Account wrangler.jsonc with secrets"
+
+      - name: Validate Account wrangler configuration
+        working-directory: apps/account
+        run: |
+          if grep -q "<BACKEND_API_URL>" wrangler.jsonc; then
+            echo "❌ Error: Placeholders still found in Account wrangler.jsonc"
+            echo "Please ensure all required secrets are set in GitHub repository settings:"
+            echo "  - BACKEND_API_URL"
+            exit 1
+          fi
+          echo "✅ All Account placeholders replaced successfully"
+
+      - name: Build and deploy Account
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          echo "🚀 Deploying Account to Cloudflare Workers..."
+          pnpm --filter account run deploy
+
+      - name: Clean up generated Account wrangler.jsonc
+        if: always()
+        working-directory: apps/account
         run: rm -f wrangler.jsonc
