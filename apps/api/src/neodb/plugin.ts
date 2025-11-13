@@ -227,6 +227,8 @@ export const neodbOAuthPlugin = {
             name: userInfo.displayName,
             image: userInfo.avatar,
             emailVerified: false,
+            // Save NeoDB handle as username (per types.ts format)
+            username: userInfo.username,
             externalAcct: userInfo.externalAcct,
           } as any,
           account: {
