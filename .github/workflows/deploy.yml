@@ -74,6 +74,7 @@ jobs:
 
       - name: Build and deploy API
         env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           echo "🚀 Deploying API to Cloudflare Workers..."
@@ -115,7 +116,7 @@ jobs:
 
           # Replace placeholders with actual values from secrets
           WRANGLER_CONFIG=$(echo "$TEMPLATE_CONTENT" | \
-            sed "s|<BACKEND_API_URL>|${{ secrets.BACKEND_API_URL }}|g")
+            sed "s|<BACKEND_API_URL>|${{ vars.BACKEND_API_URL || secrets.BACKEND_API_URL }}|g")
 
           # Write the configured wrangler.jsonc
           echo "$WRANGLER_CONFIG" > wrangler.jsonc
@@ -135,6 +136,7 @@ jobs:
 
       - name: Build and deploy Account
         env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           echo "🚀 Deploying Account to Cloudflare Workers..."
