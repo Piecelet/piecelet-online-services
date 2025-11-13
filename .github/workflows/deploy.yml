@@ -175,6 +175,12 @@ jobs:
           fi
           echo "✅ All Account placeholders replaced successfully"
 
+      - name: Create .env file for Account build
+        working-directory: apps/account
+        run: |
+          echo "VITE_API_URL=${{ vars.BACKEND_API_URL || secrets.BACKEND_API_URL }}" > .env
+          echo "✅ Created .env file with VITE_API_URL"
+
       - name: Build and deploy Account
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
