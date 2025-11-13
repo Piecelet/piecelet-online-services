@@ -120,7 +120,7 @@ export const neodbOAuthPlugin = {
         await saveState(adapter, state, instanceURL.origin, callbackURL);
         const codeChallenge = await pkceChallengeFromVerifier(codeVerifier);
 
-        const urlStr = buildAuthorizeUrl(instanceURL.origin, client.clientId, redirectUri, state, codeChallenge);
+        const urlStr = buildAuthorizeUrl(instanceURL.origin, client.client_id, redirectUri, state, codeChallenge);
         throw ctx.redirect(urlStr);
       },
     ),
