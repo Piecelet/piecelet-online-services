@@ -18,10 +18,9 @@ permissions:
   contents: read
 
 jobs:
-  deploy-api:
-    name: Deploy API Worker
+  setup:
+    name: Setup Environment
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -39,6 +38,43 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+  deploy-api:
+    name: Deploy API Worker
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Restore dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Generate API wrangler.jsonc from template
         working-directory: apps/api
@@ -88,7 +124,7 @@ jobs:
   deploy-account:
     name: Deploy Account Worker
     runs-on: ubuntu-latest
-    needs: deploy-api
+    needs: [setup, deploy-api]
 
     steps:
       - name: Checkout repository
@@ -103,10 +139,15 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '22'
-          cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Restore dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Generate Account wrangler.jsonc from template
         working-directory: apps/account
