@@ -117,16 +117,17 @@
         };
     }
 
-	// Handle keyboard for form submission
-	function handleKeyDown(combobox: any) {
-		return (e: KeyboardEvent) => {
-			// Allow parent to handle Enter key for form submission when combobox is closed
-			if (e.key === 'Enter' && !combobox.open) {
-				e.preventDefault();
-				onSubmit?.();
-			}
-		};
-	}
+    // Handle keyboard: Enter always submits with current text (no forced selection)
+    function handleKeyDown(combobox: any) {
+        return (e: KeyboardEvent) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // Ensure the bound value mirrors the visible input text
+                value = combobox.inputValue ?? '';
+                onSubmit?.();
+            }
+        };
+    }
 </script>
 
 <div class="space-y-2">
