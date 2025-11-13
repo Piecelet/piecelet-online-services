@@ -17,24 +17,39 @@ function buildAccountId(me: NeoDBMe, instanceHost: string): string {
 export const neodbOAuthPlugin = {
   id: "neodb-oauth",
   schema: {
+    // Extend the User model with externalAcct to store NeoDB external account handle
+    user: {
+      fields: {
+        externalAcct: {
+          type: "string",
+          required: false,
+          // ensure it's persisted and can be selected in outputs
+          returned: true,
+        },
+      },
+    },
     neodbClient: {
       fields: {
         instance: {
           type: "string",
           required: true,
           unique: true,
+          returned: true,
         },
         clientId: {
           type: "string",
           required: true,
+          returned: false,
         },
         clientSecret: {
           type: "string",
           required: true,
+          returned: false,
         },
         redirectUri: {
           type: "string",
           required: true,
+          returned: true,
         },
         createdAt: {
           type: "date",
@@ -205,13 +220,15 @@ export const neodbOAuthPlugin = {
         const accountId = buildAccountId(me, instanceURL.host);
 
         const result = await handleOAuthUserInfo(ctx, {
+          // Persist dedicated externalAcct field; do not misuse displayUsername
           userInfo: {
             id: String(accountId),
             email: userInfo.email,
             name: userInfo.displayName,
             image: userInfo.avatar,
-            emailVerified: true,
-          },
+            emailVerified: false,
+            externalAcct: userInfo.externalAcct,
+          } as any,
           account: {
             providerId: "neodb",
             accountId: String(accountId),
