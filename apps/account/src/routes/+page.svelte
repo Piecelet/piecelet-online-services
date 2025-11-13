@@ -17,12 +17,13 @@
 	let isValidating = $state(false);
 	let validationTimeout: ReturnType<typeof setTimeout> | null = null;
 	let mounted = $state(false);
+	let lastServerPlaceholder = $state('');
 
 	// Load last used server from localStorage
 	onMount(() => {
 		const lastServer = getItem(STORAGE_KEYS.LAST_SERVER);
 		if (lastServer) {
-			serverDomain = lastServer;
+			lastServerPlaceholder = lastServer;
 		}
 		mounted = true;
 	});
@@ -66,11 +67,23 @@
 		}, 300);
 	}
 
+	function resolvedDomain(): string {
+		const input = serverDomain?.trim() || '';
+		const fromPlaceholder = lastServerPlaceholder?.trim() || '';
+		return input || fromPlaceholder;
+	}
+
 	// Handle sign in
 	async function handleSignIn() {
 		error = null;
 
-		const sanitized = sanitizeDomain(serverDomain);
+		const input = resolvedDomain();
+		if (!input) {
+			error = 'Please enter a server domain';
+			return;
+		}
+
+		const sanitized = sanitizeDomain(input);
 
 		// Validate domain
 		const validationError = validateServerDomain(sanitized);
@@ -84,9 +97,7 @@
 
 			// Build OAuth URL
 			const callbackURL = window.location.origin + '/auth/callback';
-			const authURL = `${API_URL}/api/auth/neodb/start?instance=${encodeURIComponent(
-				sanitized
-			)}&callbackURL=${encodeURIComponent(callbackURL)}`;
+			const authURL = `${API_URL}/api/auth/neodb/start?instance=${encodeURIComponent(sanitized)}&callbackURL=${encodeURIComponent(callbackURL)}`;
 
 			// Small delay for better UX (show loading state)
 			await new Promise((resolve) => setTimeout(resolve, 300));
@@ -131,6 +142,7 @@
                         onSubmit={handleSignIn}
                         disabled={isLoading}
                         error={error}
+                        placeholder={lastServerPlaceholder || 'neodb.social'}
                     />
 
                     <!-- Sign in button -->
@@ -138,7 +150,11 @@
                         <Button
                             type="submit"
                             loading={isLoading}
-                            disabled={isLoading || isValidating || !serverDomain.trim()}
+                            disabled={
+                                isLoading ||
+                                isValidating ||
+                                !(serverDomain.trim() || lastServerPlaceholder)
+                            }
                             class="w-full"
                         >
                             {#if isLoading}

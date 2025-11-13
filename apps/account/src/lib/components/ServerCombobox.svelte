@@ -10,21 +10,23 @@
     } from '$lib/constants';
     import { getItem, setItem } from '$lib/utils/storage';
 
-	interface ServerComboboxProps {
-		value: string;
-		disabled?: boolean;
-		error?: string | null;
-		onInputChange?: (value: string) => void;
-		onSubmit?: () => void;
-	}
+    interface ServerComboboxProps {
+        value: string;
+        disabled?: boolean;
+        error?: string | null;
+        onInputChange?: (value: string) => void;
+        onSubmit?: () => void;
+        placeholder?: string;
+    }
 
-	let {
-		value = $bindable(),
-		disabled = false,
-		error = null,
-		onInputChange,
-		onSubmit
-	}: ServerComboboxProps = $props();
+    let {
+        value = $bindable(),
+        disabled = false,
+        error = null,
+        onInputChange,
+        onSubmit,
+        placeholder = 'neodb.social'
+    }: ServerComboboxProps = $props();
 
     /** Public servers state (autofill list) */
     type ServerItem = { value: string; description: string };
@@ -168,7 +170,7 @@
                 <input
                     {...combobox.input}
                     id={combobox.ids.input}
-                    placeholder="neodb.social"
+                    placeholder={placeholder}
                     disabled={disabled}
                     oninput={handleInput(combobox)}
                     onkeydown={handleKeyDown(combobox)}
