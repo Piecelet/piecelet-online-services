@@ -54,6 +54,12 @@ app.get("/", async c => {
         button { padding: 8px 16px; margin: 8px 4px; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; }
         .primary-btn { background: #3b82f6; color: white; border-color: #3b82f6; }
         .danger-btn { background: #ef4444; color: white; border-color: #ef4444; }
+        .neodb-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; margin-bottom: 4px; font-size: 0.875rem; font-weight: 500; }
+        .input-group input { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; }
+        .input-group input:focus { outline: none; border-color: #3b82f6; }
+        .helper-text { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
         footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 16px; font-size: 0.875rem; color: #6b7280; background: white; border-top: 1px solid #e5e7eb; }
         footer a { color: #3b82f6; text-decoration: underline; }
     </style>
@@ -69,6 +75,22 @@ app.get("/", async c => {
         
         <div id="not-logged-in" style="display:none;">
             <button onclick="loginAnonymously()" class="primary-btn">Login Anonymously</button>
+
+            <div class="neodb-section">
+                <h3 style="margin: 0 0 16px 0; font-size: 1.125rem; font-weight: 600;">Sign in with NeoDB</h3>
+                <div class="input-group">
+                    <label for="neodb-instance">NeoDB Instance</label>
+                    <input
+                        type="text"
+                        id="neodb-instance"
+                        placeholder="neodb.social"
+                        value="neodb.social"
+                        onkeypress="if(event.key==='Enter') loginWithNeoDB()"
+                    />
+                    <p class="helper-text">Enter your NeoDB instance host</p>
+                </div>
+                <button onclick="loginWithNeoDB()" class="primary-btn" style="width: 100%;">Sign in with NeoDB</button>
+            </div>
         </div>
         
         <div id="logged-in" style="display:none;">
@@ -135,7 +157,7 @@ app.get("/", async c => {
                 if (currentUser) {
                     return;
                 }
-                
+
                 const response = await fetch('/api/auth/sign-in/anonymous', {
                     method: 'POST',
                     credentials: 'include',
@@ -144,9 +166,9 @@ app.get("/", async c => {
                     },
                     body: JSON.stringify({})
                 });
-                
+
                 const text = await response.text();
-                
+
                 if (!response.ok) {
                     // Handle specific error for already anonymous
                     if (text.includes('ANONYMOUS_USERS_CANNOT_SIGN_IN_AGAIN_ANONYMOUSLY')) {
@@ -157,9 +179,9 @@ app.get("/", async c => {
                     alert('Anonymous login failed: HTTP ' + response.status + ' - ' + text);
                     return;
                 }
-                
+
                 const result = JSON.parse(text);
-                
+
                 if (result.user) {
                     currentUser = result.user;
                     await showLoggedIn();
@@ -170,6 +192,24 @@ app.get("/", async c => {
                 console.error('Anonymous login error:', error);
                 alert('Anonymous login failed: ' + error.message);
             }
+        }
+
+        function loginWithNeoDB() {
+            const instanceInput = document.getElementById('neodb-instance');
+            const instance = instanceInput.value.trim();
+
+            if (!instance) {
+                alert('Please enter a NeoDB instance');
+                return;
+            }
+
+            // Construct the OAuth start URL
+            const callbackURL = window.location.origin + '/';
+            const authURL = '/api/auth/neodb/start?instance=' + encodeURIComponent(instance) +
+                          '&callbackURL=' + encodeURIComponent(callbackURL);
+
+            // Redirect to the OAuth start endpoint
+            window.location.href = authURL;
         }
 
         async function logout() {

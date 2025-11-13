@@ -6,6 +6,7 @@ import type { BetterAuthPlugin } from "better-auth";
 import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, extractNeoDBUserInfo } from "./util";
 import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe } from "./mastodon";
 import type { NeoDBMe, AuthResultData } from "./types";
+import { getClient, popState, saveState } from "./store";
 
 function buildAccountId(me: NeoDBMe, instanceHost: string): string {
   if (me.url) return String(me.url);
