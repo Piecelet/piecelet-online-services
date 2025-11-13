@@ -24,16 +24,13 @@
   </div>
   </header>
 
-<main>
+<main class="pb-12">
   {@render children?.()}
 </main>
 
-<footer class="border-t border-[var(--border)]/80">
+<footer class="fixed bottom-0 left-0 right-0 z-20 border-t border-[var(--border)]/80 bg-[var(--surface)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--surface)/0.6]">
   <div class="mx-auto flex h-12 w-full max-w-5xl items-center justify-between px-4 sm:px-6 text-[11px] text-[var(--muted)]">
     <span>© {new Date().getFullYear()} Piecelet</span>
-    <span></span>
+    <LanguageSwitcher />
   </div>
 </footer>
-
-<!-- Floating language switcher at bottom-right -->
-<LanguageSwitcher />

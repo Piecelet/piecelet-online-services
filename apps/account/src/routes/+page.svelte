@@ -186,7 +186,7 @@
 		<!-- Footer -->
         <div class="mt-8 text-center text-[11px] text-[var(--muted)]" in:fade={{ duration: 300, delay: 400 }}>
             <p>
-                Secure authentication powered by Better Auth ·
+                By continuing, you agree to our
                 <a
                     href="https://piecelet.app/terms"
                     target="_blank"
@@ -195,15 +195,16 @@
                 >
                     Terms
                 </a>
-                ·
+                and
                 <a
                     href="https://piecelet.app/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="hover:text-[var(--text)]"
                 >
-                    Privacy
+                    Privacy Policy
                 </a>
+                .
             </p>
         </div>
     </div>
