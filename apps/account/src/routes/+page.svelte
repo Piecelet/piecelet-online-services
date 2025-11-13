@@ -1,279 +1,187 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
-  import { useSession } from '$lib/auth';
-  import { onMount } from 'svelte';
-  import { Combobox } from 'bits-ui';
+	import { onMount } from 'svelte';
+	import { fade, fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
+	import ErrorMessage from '$lib/components/ui/ErrorMessage.svelte';
+	import ServerCombobox from '$lib/components/ServerCombobox.svelte';
+	import { validateServerDomain, sanitizeDomain } from '$lib/utils/validation';
+	import { getItem, setItem } from '$lib/utils/storage';
+	import { API_URL, STORAGE_KEYS } from '$lib/constants';
 
-  type Server = { domain: string; description?: string };
+	// State management
+	let serverDomain = $state('');
+	let error = $state<string | null>(null);
+	let isLoading = $state(false);
+	let isValidating = $state(false);
+	let validationTimeout: ReturnType<typeof setTimeout> | null = null;
+	let mounted = $state(false);
 
-  let servers = $state<Server[]>([]);
-  let error = $state('');
-  let loading = $state(false);
-  let fetchingServers = $state(true);
-  let autoOpened = $state(false);
-  let inputRef: HTMLInputElement | undefined;
+	// Load last used server from localStorage
+	onMount(() => {
+		const lastServer = getItem(STORAGE_KEYS.LAST_SERVER);
+		if (lastServer) {
+			serverDomain = lastServer;
+		}
+		mounted = true;
+	});
 
-  const session = useSession();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+	// Save server to localStorage when it changes
+	$effect(() => {
+		if (serverDomain && mounted) {
+			setItem(STORAGE_KEYS.LAST_SERVER, serverDomain);
+		}
+	});
 
-  // Debug toggle via query (?debug=1) or dev mode
-  const debugFlag = $derived(() => $page.url.searchParams.get('debug') === '1' || import.meta.env.DEV);
-  function log(...args: any[]) {
-    if (debugFlag) console.log('[account/login]', ...args);
-  }
+	// Debounced validation
+	function handleServerChange(value: string) {
+		// Clear previous error on input change
+		error = null;
 
-  // Redirect to dashboard if already logged in
-  $effect(() => {
-    if ($session.data?.session) {
-      goto('/dashboard');
-    }
-  });
+		// Clear previous validation timeout
+		if (validationTimeout) {
+			clearTimeout(validationTimeout);
+		}
 
-  onMount(async () => {
-    log('onMount → loadServers()');
-    await loadServers();
-  });
+		// Don't validate empty input
+		if (!value.trim()) {
+			isValidating = false;
+			return;
+		}
 
-  const DEFAULT_SERVERS: Server[] = [
-    { domain: 'neodb.social', description: 'Public NeoDB server' }
-  ];
+		// Set validating state
+		isValidating = true;
 
-  async function loadServers() {
-    fetchingServers = true;
-    try {
-      const url = 'https://neodb-public-api.piecelet.app/servers';
-      log('loadServers: fetching', url);
-      const res = await fetch(url, { cache: 'no-store' });
-      log('loadServers: status', res.status, res.statusText);
-      if (!res.ok) throw new Error(`bad status ${res.status}`);
-      const data = await res.json();
-      log('loadServers: raw type', Array.isArray(data) ? 'array' : typeof data);
-      if (Array.isArray(data)) log('loadServers: raw sample', data.slice(0, 3));
-      else if (data && typeof data === 'object') log('loadServers: raw keys', Object.keys(data).slice(0, 8));
-      servers = normalizeServers(data);
-      log('loadServers: normalized length', servers.length, 'sample', servers.slice(0, 5));
-    } catch (e) {
-      log('loadServers: error', e);
-      // Fallback to a minimal known server so UI stays useful
-      servers = DEFAULT_SERVERS;
-    } finally {
-      fetchingServers = false;
-      log('loadServers: done. servers length =', servers.length);
-      // Auto-open menu on first successful load if nothing typed/selected
-      if (!autoOpened && servers.length > 0 && !value && !search) {
-        autoOpened = true;
-        open = true;
-        log('loadServers: auto-opened menu');
-      }
-    }
-  }
+		// Debounce validation by 300ms
+		validationTimeout = setTimeout(() => {
+			const sanitized = sanitizeDomain(value);
+			const validationError = validateServerDomain(sanitized);
 
-  function normalizeServers(data: any): Server[] {
-    // If array of strings
-    if (Array.isArray(data)) {
-      if (data.length > 0 && typeof data[0] === 'string') {
-        log('normalizeServers: array-of-strings');
-        return (data as string[]).map((d) => ({ domain: d }));
-      }
-      // Array of objects
-      log('normalizeServers: array-of-objects');
-      return (data as any[])
-        .map((item) => {
-          if (!item || typeof item !== 'object') return null;
-          const domain = item.domain || item.host || item.hostname || item.url || item.instance;
-          const description = item.description || item.note || item.title;
-          if (typeof domain === 'string') {
-            return { domain, description } as Server;
-          }
-          return null;
-        })
-        .filter(Boolean) as Server[];
-    }
+			if (validationError) {
+				error = validationError;
+			}
 
-    // If object with known keys
-    if (data && typeof data === 'object') {
-      // Nested `servers` key
-      if (Array.isArray(data.servers)) {
-        log('normalizeServers: using data.servers');
-        return normalizeServers(data.servers);
-      }
+			isValidating = false;
+		}, 300);
+	}
 
-      // domains + descriptions arrays aligned by index
-      if (Array.isArray(data.domains)) {
-        log('normalizeServers: domains + descriptions arrays');
-        const descArr = Array.isArray(data.descriptions) ? data.descriptions : [];
-        return (data.domains as any[])
-          .map((d: any, i: number) => {
-            if (typeof d === 'string') return { domain: d, description: descArr[i] } as Server;
-            if (d && typeof d === 'object' && typeof d.domain === 'string') return { domain: d.domain, description: d.description } as Server;
-            return null;
-          })
-          .filter(Boolean) as Server[];
-      }
+	// Handle sign in
+	async function handleSignIn() {
+		error = null;
 
-      // Object map { domain: description }
-      const entries = Object.entries(data as Record<string, any>);
-      if (entries.length > 0) {
-        log('normalizeServers: kv-map candidate entries', entries.slice(0, 5));
-        const mapped = entries
-          .map(([k, v]) => {
-            if (k.includes('.')) return { domain: k, description: typeof v === 'string' ? v : undefined } as Server;
-            return null;
-          })
-          .filter(Boolean) as Server[];
-        if (mapped.length > 0) {
-          log('normalizeServers: kv-map matched length', mapped.length);
-          return mapped;
-        }
-      }
-    }
+		const sanitized = sanitizeDomain(serverDomain);
 
-    return [];
-  }
+		// Validate domain
+		const validationError = validateServerDomain(sanitized);
+		if (validationError) {
+			error = validationError;
+			return;
+		}
 
-  // Combobox state for Bits UI
-  let open = $state(false);
-  let value = $state('');
-  let search = $state('');
+		try {
+			isLoading = true;
 
-  // Filter suggestions as user types (client-side)
-  const filteredServers = $derived(() => {
-    const q = (search || '').toLowerCase().trim();
-    if (q) log('filter', q);
-    if (!q) return servers;
-    return servers.filter((s) =>
-      s.domain.toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q)
-    );
-  });
+			// Build OAuth URL
+			const callbackURL = window.location.origin + '/auth/callback';
+			const authURL = `${API_URL}/api/auth/neodb/start?instance=${encodeURIComponent(
+				sanitized
+			)}&callbackURL=${encodeURIComponent(callbackURL)}`;
 
-  const topSuggestions = $derived(() => servers.slice(0, 8));
+			// Small delay for better UX (show loading state)
+			await new Promise((resolve) => setTimeout(resolve, 300));
 
-  function handleLogin() {
-    error = '';
-    const typed = inputRef?.value ?? '';
-    const domain = (value || typed || search).toString().trim();
-    log('handleLogin value =', domain);
-    if (!domain) {
-      error = 'Please select or enter a server domain';
-      log('handleLogin error: empty value');
-      return;
-    }
-    loading = true;
-    const callbackURL = window.location.origin + '/auth/callback';
-    const authURL = `${API_URL}/api/auth/neodb/start?instance=${encodeURIComponent(domain)}&callbackURL=${encodeURIComponent(callbackURL)}`;
-    log('redirect →', authURL);
-    window.location.href = authURL;
-  }
+			// Redirect to auth flow
+			window.location.href = authURL;
+		} catch (err) {
+			isLoading = false;
+			error = err instanceof Error ? err.message : 'Failed to start authentication flow';
+			console.error('Sign in error:', err);
+		}
+	}
 
-  function onInputKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      handleLogin();
-    }
-  }
-
-  // Trace menu state and input typing
-  $effect(() => log('open =', open));
-  $effect(() => log('inputValue/search =', search));
-  $effect(() => {
-    log('value changed →', value);
-    if (value && value !== search) search = value;
-  });
-
-  // no-op helper removed for minimal surface
+	// Handle form submission event from combobox
+	function handleSubmitForm(e: Event) {
+		e.preventDefault();
+		if (!isLoading && !isValidating) {
+			handleSignIn();
+		}
+	}
 </script>
 
+<svelte:window onsubmitform={handleSubmitForm} />
+
 <div class="min-h-screen bg-[var(--bg)]">
-  <div class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6">
-    <div class="mb-8 text-center">
-      <h1 class="text-4xl font-semibold tracking-tight text-[var(--text)]">Piecelet Account</h1>
-      <p class="mt-2 text-sm text-[var(--muted)]">Sign in to continue</p>
-    </div>
+	<div
+		class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12"
+		in:fade={{ duration: 300, delay: 100 }}
+	>
+		<!-- Header -->
+		<div class="mb-8 text-center" in:fly={{ y: -20, duration: 400, delay: 200, easing: cubicOut }}>
+			<h1 class="text-5xl font-semibold tracking-tight text-[var(--text)]">Piecelet</h1>
+			<p class="mt-3 text-sm text-[var(--muted)]">Connect your NeoDB account</p>
+		</div>
 
-    <div class="rounded-2xl bg-[var(--surface)] p-8 border border-[var(--border)] shadow-sm">
-      {#if error}
-        <div class="mb-4 rounded-xl border border-red-200/60 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>
-      {/if}
+		<!-- Sign in card -->
+		<div in:fly={{ y: 20, duration: 400, delay: 300, easing: cubicOut }}>
+			<Card>
+				<!-- Error message -->
+				{#if error}
+					<div class="mb-4">
+						<ErrorMessage message={error} />
+					</div>
+				{/if}
 
-      <div class="space-y-3">
-        <label for="server" class="block text-sm font-medium text-[var(--text)]">NeoDB Server</label>
+				<!-- Server selection -->
+				<ServerCombobox
+					bind:value={serverDomain}
+					onValueChange={(value) => {
+						serverDomain = value;
+					}}
+					onInputChange={handleServerChange}
+					disabled={isLoading}
+					error={error}
+				/>
 
-        <div class="relative">
-          <Combobox.Root bind:open={open} bind:value={value}>
-            <Combobox.Input
-              id="server"
-              placeholder="neodb.social"
-              disabled={loading}
-              on:keydown={onInputKeyDown}
-              bind:this={inputRef}
-              on:input={(e) => {
-                error = '';
-                search = (e.currentTarget as HTMLInputElement).value;
-              }}
-              class="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-[15px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none ring-0 transition focus-visible:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:bg-[color-mix(in_oklab,_var(--surface)_92%,_black)] disabled:text-[var(--muted)]"
-            />
-            <Combobox.Content class="z-50 mt-1 max-h-72 overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-sm">
-              {#if filteredServers.length === 0}
-                <div class="px-3 py-2 text-sm text-[var(--muted)]">
-                  {#if search}
-                    Press Enter to use "{search}"
-                  {:else}
-                    {fetchingServers ? 'Loading servers…' : 'Type a domain to continue'}
-                  {/if}
-                </div>
-              {:else}
-                {#each filteredServers as s (s.domain)}
-                  <Combobox.Item value={s.domain} class="cursor-pointer rounded-lg px-3 py-2 text-[15px] text-[var(--text)] data-[highlighted]:bg-[var(--hover)]">
-                    <div class="font-medium">{s.domain}</div>
-                    {#if s.description}
-                      <div class="text-xs text-[var(--muted)]">{s.description}</div>
-                    {/if}
-                  </Combobox.Item>
-                {/each}
-              {/if}
-            </Combobox.Content>
-          </Combobox.Root>
-        </div>
-        <p class="text-xs text-[var(--muted)]">Select from list or type a domain</p>
+				<!-- Sign in button -->
+				<div class="mt-6">
+					<Button
+						onclick={handleSignIn}
+						loading={isLoading}
+						disabled={isLoading || isValidating || !serverDomain.trim()}
+						class="w-full"
+					>
+						{#if isLoading}
+							Connecting...
+						{:else if isValidating}
+							Validating...
+						{:else}
+							Continue
+						{/if}
+					</Button>
+				</div>
 
-        <!-- Always-visible light suggestions -->
-        {#if topSuggestions.length > 0}
-          <div class="mt-2 flex flex-wrap gap-2">
-            {#each topSuggestions as s (s.domain)}
-              <button
-                type="button"
-                onclick={() => {
-                  value = s.domain;
-                  search = s.domain;
-                }}
-                class="rounded-full border border-[var(--accent-tint-border)] bg-[var(--accent-tint)] px-3 py-1 text-xs text-[var(--text)] hover:bg-[var(--hover)]"
-                aria-label={`Use ${s.domain}`}
-              >
-                {s.domain}
-              </button>
-            {/each}
-          </div>
-        {/if}
-      </div>
+				<!-- Help text -->
+				<div class="mt-4 text-center text-xs text-[var(--muted)]">
+					Don't have a NeoDB account?
+					<a
+						href="https://neodb.social"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="font-medium text-[var(--accent)] hover:underline focus-visible:underline focus-visible:outline-none"
+					>
+						Get started
+					</a>
+				</div>
+			</Card>
+		</div>
 
-      <button
-        type="button"
-        onclick={handleLogin}
-        disabled={loading}
-        class="mt-6 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {loading ? 'Redirecting…' : 'Sign in with NeoDB'}
-      </button>
-    </div>
-
-    <div class="mt-6 text-center text-xs text-[var(--muted)]">
-      <p>
-        By signing in, you agree to our
-        <a href="/terms" class="text-[var(--accent)] hover:underline">Terms of Service</a>
-        and
-        <a href="/privacy" class="text-[var(--accent)] hover:underline">Privacy Policy</a>
-      </p>
-    </div>
-  </div>
+		<!-- Footer -->
+		<div
+			class="mt-8 text-center text-xs text-[var(--muted)]"
+			in:fade={{ duration: 300, delay: 400 }}
+		>
+			<p>Secure authentication powered by Better Auth</p>
+		</div>
+	</div>
 </div>
