@@ -100,16 +100,7 @@
 		}
 	}
 
-	// Handle form submission event from combobox
-	function handleSubmitForm(e: Event) {
-		e.preventDefault();
-		if (!isLoading && !isValidating) {
-			handleSignIn();
-		}
-	}
 </script>
-
-<svelte:window onsubmitform={handleSubmitForm} />
 
 <div class="min-h-screen bg-[var(--bg)]">
 	<div
@@ -135,10 +126,8 @@
 				<!-- Server selection -->
 				<ServerCombobox
 					bind:value={serverDomain}
-					onValueChange={(value) => {
-						serverDomain = value;
-					}}
 					onInputChange={handleServerChange}
+					onSubmit={handleSignIn}
 					disabled={isLoading}
 					error={error}
 				/>

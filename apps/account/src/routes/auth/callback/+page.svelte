@@ -26,7 +26,7 @@
 			});
 
 			if (response.ok) {
-				const data = await response.json();
+				const data = (await response.json()) as { session?: unknown };
 				if (data?.session) {
 					// Success - redirect to dashboard
 					goto('/dashboard');
