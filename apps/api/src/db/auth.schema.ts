@@ -7,7 +7,6 @@ export const users = sqliteTable("users", {
     email: text("email").notNull().unique(),
     emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
     image: text("image"),
-    externalAcct: text("external_acct"),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
         .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
         .notNull(),
@@ -17,6 +16,7 @@ export const users = sqliteTable("users", {
         .notNull(),
     username: text("username").unique(),
     displayUsername: text("display_username"),
+    externalAcct: text("external_acct"),
 });
 
 export const sessions = sqliteTable("sessions", {
