@@ -34,6 +34,8 @@ type Messages = {
   error_enter_domain: string;
   error_invalid_domain: string;
   error_domain_too_long: string;
+
+  nav_download_piecelet: string;
 };
 
 const en: Messages = {
@@ -69,7 +71,9 @@ const en: Messages = {
 
   error_enter_domain: 'Please enter a server domain',
   error_invalid_domain: 'Please enter a valid domain (e.g., neodb.social)',
-  error_domain_too_long: 'Domain name is too long'
+  error_domain_too_long: 'Domain name is too long',
+
+  nav_download_piecelet: 'Download Piecelet for NeoDB'
 };
 
 const zhCN: Messages = {
@@ -105,7 +109,9 @@ const zhCN: Messages = {
 
   error_enter_domain: '请输入服务器域名',
   error_invalid_domain: '请输入有效的域名（例如：neodb.social）',
-  error_domain_too_long: '域名过长'
+  error_domain_too_long: '域名过长',
+
+  nav_download_piecelet: '下载 Piecelet for NeoDB'
 };
 
 const zhTW: Messages = {
@@ -141,7 +147,9 @@ const zhTW: Messages = {
 
   error_enter_domain: '請輸入伺服器網域',
   error_invalid_domain: '請輸入有效的網域（例如：neodb.social）',
-  error_domain_too_long: '網域過長'
+  error_domain_too_long: '網域過長',
+
+  nav_download_piecelet: '下載 Piecelet for NeoDB'
 };
 
 function cur(): keyof typeof messages {
@@ -200,4 +208,5 @@ export const t = {
   error_enter_domain: () => messages[cur()].error_enter_domain,
   error_invalid_domain: () => messages[cur()].error_invalid_domain,
   error_domain_too_long: () => messages[cur()].error_domain_too_long
+  ,nav_download_piecelet: () => messages[cur()].nav_download_piecelet
 };

@@ -2,6 +2,7 @@
   import '../app.css';
   import favicon from '$lib/assets/favicon.svg';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
+  import { t } from '$lib/i18n';
 
   let { children } = $props();
 </script>
@@ -17,7 +18,7 @@
       <span class="text-sm font-semibold tracking-[-0.01em]">Piecelet Connect</span>
     </a>
     <nav class="flex items-center gap-3 text-xs text-[var(--muted)]">
-      <a href="https://piecelet.app" target="_blank" rel="noreferrer" class="hover:text-[var(--text)]">to Piecelet for NeoDB</a>
+      <a href="https://piecelet.app" target="_blank" rel="noreferrer" class="hover:text-[var(--text)]">{t.nav_download_piecelet()}</a>
     </nav>
   </div>
   </header>
