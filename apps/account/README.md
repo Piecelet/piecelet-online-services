@@ -5,7 +5,6 @@ This is the account management frontend for Piecelet, built with SvelteKit and B
 ## Features
 
 - NeoDB OAuth authentication
-- Anonymous login
 - Account dashboard with user info
 - Session management
 - Geolocation tracking
@@ -63,7 +62,7 @@ src/
 ├── lib/
 │   └── auth.ts              # Better Auth client configuration
 ├── routes/
-│   ├── +page.svelte         # Login page with NeoDB and anonymous options
+│   ├── +page.svelte         # Login page with NeoDB (server dropdown)
 │   ├── +layout.svelte       # Root layout
 │   ├── auth/
 │   │   └── callback/
@@ -84,11 +83,11 @@ src/
 5. User is redirected back to `/auth/callback`
 6. Session is established and user is redirected to `/dashboard`
 
-### Anonymous Login
+### Server List
 
-1. User clicks "Continue Anonymously"
-2. Request is sent to API `/api/auth/sign-in/anonymous`
-3. Session is established and user is redirected to `/dashboard`
+On the login page, the NeoDB server field is a Combobox (unstyled Melt UI) which:
+- Prefills suggestions from `https://neodb-public-api.piecelet.app/servers` (domain + description)
+- Allows manual entry of a domain (e.g., `neodb.social`)
 
 ## Environment Variables
 

@@ -52,7 +52,7 @@
 	<div class="w-full max-w-md text-center">
 		{#if loading}
 			<div class="rounded-lg bg-white px-8 py-12 shadow-md">
-				<div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+				<div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-[rgb(48_102_92)]"></div>
 				<h2 class="mt-4 text-lg font-semibold text-gray-900">Completing sign in...</h2>
 				<p class="mt-2 text-sm text-gray-600">Please wait while we verify your authentication.</p>
 			</div>
@@ -77,7 +77,7 @@
 				<p class="mt-2 text-sm text-gray-600">{error}</p>
 				<button
 					onclick={handleRetry}
-					class="mt-6 inline-flex justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+					class="mt-6 inline-flex justify-center rounded-md bg-[rgb(48_102_92)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[rgb(48_102_92)] focus:ring-offset-2"
 				>
 					Try Again
 				</button>
