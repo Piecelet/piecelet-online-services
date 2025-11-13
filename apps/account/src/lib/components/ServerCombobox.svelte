@@ -117,6 +117,24 @@
         };
     }
 
+    // Ensure composition text (IME) is also reflected immediately
+    function handleComposition(combobox: any) {
+        return (e: CompositionEvent) => {
+            const target = e.currentTarget as HTMLInputElement;
+            value = target.value;
+            onInputChange?.(target.value);
+        };
+    }
+
+    // On blur, sync once more to capture any pending edits
+    function handleBlur(combobox: any) {
+        return (e: FocusEvent) => {
+            const target = e.currentTarget as HTMLInputElement;
+            value = target.value;
+            onInputChange?.(target.value);
+        };
+    }
+
     // Handle keyboard: Enter always submits with current text (no forced selection)
     function handleKeyDown(combobox: any) {
         return (e: KeyboardEvent) => {
@@ -140,14 +158,18 @@
             <div class="relative">
                 <!-- Input field -->
                 <input
-					{...combobox.input}
-					id={combobox.ids.input}
-					placeholder="neodb.social"
-					disabled={disabled}
-					oninput={handleInput(combobox)}
-					onkeydown={handleKeyDown(combobox)}
-					aria-invalid={error ? 'true' : 'false'}
-					aria-describedby={error ? 'server-error' : undefined}
+                    {...combobox.input}
+                    id={combobox.ids.input}
+                    placeholder="neodb.social"
+                    disabled={disabled}
+                    oninput={handleInput(combobox)}
+                    onkeydown={handleKeyDown(combobox)}
+                    oncompositionstart={handleComposition(combobox)}
+                    oncompositionupdate={handleComposition(combobox)}
+                    oncompositionend={handleComposition(combobox)}
+                    onblur={handleBlur(combobox)}
+                    aria-invalid={error ? 'true' : 'false'}
+                    aria-describedby={error ? 'server-error' : undefined}
                     class="w-full round border px-3 py-2.5 text-[15px] placeholder:text-[var(--muted)] outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-60 {error
                         ? 'border-red-300 bg-red-50/50 text-red-900 focus-visible:border-red-400 focus-visible:ring-red-400 dark:border-red-800 dark:bg-red-950/20 dark:text-red-100'
                         : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text)] focus-visible:border-[var(--accent)] focus-visible:ring-[var(--accent)]'}"
