@@ -114,54 +114,56 @@
         </div>
 
 		<!-- Sign in card -->
-		<div in:fly={{ y: 20, duration: 400, delay: 300, easing: cubicOut }}>
+        <div in:fly={{ y: 20, duration: 400, delay: 300, easing: cubicOut }}>
             <Card class="shadow-sm">
-				<!-- Error message -->
-				{#if error}
-					<div class="mb-4">
-						<ErrorMessage message={error} />
-					</div>
-				{/if}
+                <form onsubmit={(e) => { e.preventDefault(); handleSignIn(); }} novalidate>
+                    <!-- Error message -->
+                    {#if error}
+                        <div class="mb-4">
+                            <ErrorMessage message={error} />
+                        </div>
+                    {/if}
 
-				<!-- Server selection -->
-				<ServerCombobox
-					bind:value={serverDomain}
-					onInputChange={handleServerChange}
-					onSubmit={handleSignIn}
-					disabled={isLoading}
-					error={error}
-				/>
+                    <!-- Server selection -->
+                    <ServerCombobox
+                        bind:value={serverDomain}
+                        onInputChange={handleServerChange}
+                        onSubmit={handleSignIn}
+                        disabled={isLoading}
+                        error={error}
+                    />
 
-				<!-- Sign in button -->
-                <div class="mt-6">
-                    <Button
-                        onclick={handleSignIn}
-                        loading={isLoading}
-                        disabled={isLoading || isValidating || !serverDomain.trim()}
-                        class="w-full"
-                    >
-						{#if isLoading}
-							Connecting...
-						{:else if isValidating}
-							Validating...
-						{:else}
-							Continue
-						{/if}
-					</Button>
-				</div>
+                    <!-- Sign in button -->
+                    <div class="mt-6">
+                        <Button
+                            type="submit"
+                            loading={isLoading}
+                            disabled={isLoading || isValidating || !serverDomain.trim()}
+                            class="w-full"
+                        >
+                            {#if isLoading}
+                                Connecting...
+                            {:else if isValidating}
+                                Validating...
+                            {:else}
+                                Continue
+                            {/if}
+                        </Button>
+                    </div>
 
-				<!-- Help text -->
-                <div class="mt-4 text-center text-xs text-[var(--muted)]">
-                    Don't have a NeoDB account?
-                    <a
-                        href="https://neodb.social"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="font-medium text-[var(--accent)] hover:underline focus-visible:underline focus-visible:outline-none"
-                    >
-                        Get started
-                    </a>
-                </div>
+                    <!-- Help text -->
+                    <div class="mt-4 text-center text-xs text-[var(--muted)]">
+                        Don't have a NeoDB account?
+                        <a
+                            href="https://neodb.social"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="font-medium text-[var(--accent)] hover:underline focus-visible:underline focus-visible:outline-none"
+                        >
+                            Get started
+                        </a>
+                    </div>
+                </form>
             </Card>
         </div>
 
