@@ -20,23 +20,23 @@
 
 	const isDisabled = $derived(disabled || loading);
 
-	const variantClasses = {
-		primary:
-			'bg-[var(--accent)] text-white hover:brightness-110 focus-visible:ring-[var(--accent)]',
-		secondary:
-			'bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] hover:bg-[var(--hover)] focus-visible:ring-[var(--border)]',
-		ghost: 'text-[var(--text)] hover:bg-[var(--hover)] focus-visible:ring-[var(--border)]'
-	};
+    const variantClasses = {
+        primary:
+            'bg-[var(--accent)] text-white shadow-sm hover:brightness-[1.08] focus-visible:ring-[var(--accent)]',
+        secondary:
+            'bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] hover:bg-[var(--hover)] focus-visible:ring-[var(--border)]',
+        ghost: 'text-[var(--text)] hover:bg-[var(--hover)] focus-visible:ring-[var(--border)]'
+    };
 </script>
 
 <button
-	type="button"
-	disabled={isDisabled}
-	class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60 {variantClasses[
-		variant
-	]} {className}"
-	{onclick}
-	{...restProps}
+    type="button"
+    disabled={isDisabled}
+    class="inline-flex h-11 items-center justify-center gap-2 round px-4 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-60 {variantClasses[
+        variant
+    ]} {className}"
+    {onclick}
+    {...restProps}
 >
 	{#if loading}
 		<svg

@@ -10,7 +10,8 @@
 </script>
 
 <div
-	class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm transition-shadow duration-200 hover:shadow-md {className}"
+	class="round border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm transition-shadow duration-200 hover:shadow-md {className}"
+	style="box-shadow: var(--shadow-sm)"
 	{...restProps}
 >
 	{@render children()}

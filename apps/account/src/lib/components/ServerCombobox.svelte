@@ -68,9 +68,9 @@
 				NeoDB Server
 			</label>
 
-			<div class="relative">
-				<!-- Input field -->
-				<input
+            <div class="relative">
+                <!-- Input field -->
+                <input
 					{...combobox.input}
 					id={combobox.ids.input}
 					placeholder="neodb.social"
@@ -79,19 +79,19 @@
 					onkeydown={handleKeyDown(combobox)}
 					aria-invalid={error ? 'true' : 'false'}
 					aria-describedby={error ? 'server-error' : undefined}
-					class="w-full rounded-xl border px-3 py-2.5 text-[15px] placeholder:text-[var(--muted)] outline-none transition-all duration-200 focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60 {error
-						? 'border-red-300 bg-red-50/50 text-red-900 focus-visible:border-red-400 focus-visible:ring-red-400 dark:border-red-800 dark:bg-red-950/20 dark:text-red-100'
-						: 'border-[var(--border)] bg-[var(--surface)] text-[var(--text)] focus-visible:border-[var(--accent)] focus-visible:ring-[var(--accent)]'}"
-				/>
+                    class="w-full round border px-3 py-2.5 text-[15px] placeholder:text-[var(--muted)] outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-60 {error
+                        ? 'border-red-300 bg-red-50/50 text-red-900 focus-visible:border-red-400 focus-visible:ring-red-400 dark:border-red-800 dark:bg-red-950/20 dark:text-red-100'
+                        : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text)] focus-visible:border-[var(--accent)] focus-visible:ring-[var(--accent)]'}"
+                />
 
 				<!-- Dropdown content -->
 				{#if combobox.open}
 					{@const filtered = getFilteredServers(combobox)}
-					<div
-						{...combobox.content}
-						transition:fly={{ duration: 150, y: -4 }}
-						class="absolute z-50 mt-1 w-full max-h-80 overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-lg"
-					>
+                    <div
+                        {...combobox.content}
+                        transition:fly={{ duration: 150, y: -4 }}
+                        class="absolute z-50 mt-1 w-full max-h-80 overflow-auto round border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-lg"
+                    >
 
 						{#if filtered.length === 0}
 							<div class="px-3 py-6 text-center text-sm text-[var(--muted)]">

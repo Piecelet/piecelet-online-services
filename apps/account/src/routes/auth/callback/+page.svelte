@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+    import Card from '$lib/components/ui/Card.svelte';
+    import Button from '$lib/components/ui/Button.svelte';
 
 	let error = $state('');
 	let loading = $state(true);
@@ -48,40 +50,38 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
-	<div class="w-full max-w-md text-center">
-		{#if loading}
-	    			<div class="rounded-2xl bg-[var(--surface)] px-8 py-12 border border-[var(--border)] shadow-sm">
-				<div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--accent)]"></div>
-				<h2 class="mt-4 text-lg font-semibold text-[var(--text)]">Completing sign in...</h2>
-				<p class="mt-2 text-sm text-[var(--muted)]">Please wait while we verify your authentication.</p>
-			</div>
-		{:else if error}
-	    			<div class="rounded-2xl bg-[var(--surface)] px-8 py-12 border border-[var(--border)] shadow-sm">
-				<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-					<svg
-						class="h-6 w-6 text-red-600"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						/>
-					</svg>
-				</div>
-				<h2 class="mt-4 text-lg font-semibold text-[var(--text)]">Authentication Failed</h2>
-				<p class="mt-2 text-sm text-[var(--muted)]">{error}</p>
-				<button
-					onclick={handleRetry}
-					class="mt-6 inline-flex justify-center rounded-2xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2"
-				>
-					Try Again
-				</button>
-			</div>
-		{/if}
-	</div>
+<div class="flex min-h-[calc(100svh-104px)] items-center justify-center bg-[var(--bg)] px-4">
+    <div class="w-full max-w-md text-center">
+        {#if loading}
+            <Card class="px-8 py-10">
+                <div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--accent)]"></div>
+                <h2 class="mt-4 text-[17px] font-semibold text-[var(--text)]">Completing sign in…</h2>
+                <p class="mt-1.5 text-[13px] text-[var(--muted)]">Please wait while we verify your authentication.</p>
+            </Card>
+        {:else if error}
+            <Card class="px-8 py-10">
+                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
+                    <svg
+                        class="h-6 w-6 text-red-600 dark:text-red-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                    </svg>
+                </div>
+                <h2 class="mt-4 text-[17px] font-semibold text-[var(--text)]">Authentication Failed</h2>
+                <p class="mt-1.5 text-[13px] text-[var(--muted)]">{error}</p>
+                <div class="mt-6">
+                    <Button onclick={handleRetry} class="px-5">Try Again</Button>
+                </div>
+            </Card>
+        {/if}
+    </div>
+    
 </div>

@@ -102,20 +102,20 @@
 
 </script>
 
-<div class="min-h-screen bg-[var(--bg)]">
-	<div
-		class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12"
-		in:fade={{ duration: 300, delay: 100 }}
-	>
+<div class="bg-[var(--bg)]">
+    <div
+        class="mx-auto flex min-h-[calc(100svh-104px)] w-full max-w-md flex-col justify-center px-6 py-12"
+        in:fade={{ duration: 300, delay: 100 }}
+    >
 		<!-- Header -->
-		<div class="mb-8 text-center" in:fly={{ y: -20, duration: 400, delay: 200, easing: cubicOut }}>
-			<h1 class="text-5xl font-semibold tracking-tight text-[var(--text)]">Piecelet</h1>
-			<p class="mt-3 text-sm text-[var(--muted)]">Connect your NeoDB account</p>
-		</div>
+        <div class="mb-8 text-center" in:fly={{ y: -20, duration: 400, delay: 200, easing: cubicOut }}>
+            <h1 class="text-[32px] font-semibold tracking-[-0.02em] text-[var(--text)]">Sign in to Piecelet</h1>
+            <p class="mt-2 text-[13px] text-[var(--muted)]">Connect your NeoDB account to continue</p>
+        </div>
 
 		<!-- Sign in card -->
 		<div in:fly={{ y: 20, duration: 400, delay: 300, easing: cubicOut }}>
-			<Card>
+            <Card class="shadow-sm">
 				<!-- Error message -->
 				{#if error}
 					<div class="mb-4">
@@ -133,13 +133,13 @@
 				/>
 
 				<!-- Sign in button -->
-				<div class="mt-6">
-					<Button
-						onclick={handleSignIn}
-						loading={isLoading}
-						disabled={isLoading || isValidating || !serverDomain.trim()}
-						class="w-full"
-					>
+                <div class="mt-6">
+                    <Button
+                        onclick={handleSignIn}
+                        loading={isLoading}
+                        disabled={isLoading || isValidating || !serverDomain.trim()}
+                        class="w-full"
+                    >
 						{#if isLoading}
 							Connecting...
 						{:else if isValidating}
@@ -151,26 +151,23 @@
 				</div>
 
 				<!-- Help text -->
-				<div class="mt-4 text-center text-xs text-[var(--muted)]">
-					Don't have a NeoDB account?
-					<a
-						href="https://neodb.social"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="font-medium text-[var(--accent)] hover:underline focus-visible:underline focus-visible:outline-none"
-					>
-						Get started
-					</a>
-				</div>
-			</Card>
-		</div>
+                <div class="mt-4 text-center text-xs text-[var(--muted)]">
+                    Don't have a NeoDB account?
+                    <a
+                        href="https://neodb.social"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="font-medium text-[var(--accent)] hover:underline focus-visible:underline focus-visible:outline-none"
+                    >
+                        Get started
+                    </a>
+                </div>
+            </Card>
+        </div>
 
 		<!-- Footer -->
-		<div
-			class="mt-8 text-center text-xs text-[var(--muted)]"
-			in:fade={{ duration: 300, delay: 400 }}
-		>
-			<p>Secure authentication powered by Better Auth</p>
-		</div>
-	</div>
+        <div class="mt-8 text-center text-[11px] text-[var(--muted)]" in:fade={{ duration: 300, delay: 400 }}>
+            <p>Secure authentication powered by Better Auth</p>
+        </div>
+    </div>
 </div>

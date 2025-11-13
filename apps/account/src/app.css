@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* Apple‑style design tokens */
+/* Apple‑inspired design tokens tuned for Piecelet */
 :root {
   /* Accent (iOS/macOS system blue) */
   --accent: #007aff;
@@ -12,6 +12,13 @@
   --border: #e5e5ea;       /* Separator lines */
   --text: #1c1c1e;         /* Primary text */
   --muted: #6e6e73;        /* Secondary text */
+
+  /* Radii and elevation */
+  --radius-sm: 10px;
+  --radius: 16px;          /* Primary round‑rect radius */
+  --radius-lg: 24px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.03);
+  --shadow-md: 0 8px 30px rgba(0,0,0,0.06);
 
   /* Utility tints */
   --accent-tint: rgba(0, 122, 255, 0.08);
@@ -26,6 +33,8 @@
     --border: #2c2c2e;
     --text: #ffffff;
     --muted: #a1a1a6;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.5), 0 1px 1px rgba(0,0,0,0.35);
+    --shadow-md: 0 12px 40px rgba(0,0,0,0.45);
     --accent-tint: rgba(10, 132, 255, 0.18);
     --accent-tint-border: rgba(10, 132, 255, 0.4);
   }
@@ -38,10 +47,33 @@ html, body {
 }
 
 body {
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
-  background-color: var(--bg);
+  font-family: ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', 'SF Pro Display', Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+  background: radial-gradient(1200px 600px at 60% -10%, rgba(0,122,255,0.06), transparent 40%),
+              radial-gradient(1000px 500px at 10% 110%, rgba(0,122,255,0.05), transparent 50%),
+              var(--bg);
   color: var(--text);
+  letter-spacing: -0.01em;
 }
+
+/* Links feel like Apple: subtle, accent colored */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover, a:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+/* Selection color aligned to accent */
+::selection {
+  background: var(--accent-tint);
+}
+
+/* Round‑rect default helpers for components using CSS vars */
+.round-sm { border-radius: var(--radius-sm); }
+.round { border-radius: var(--radius); }
+.round-lg { border-radius: var(--radius-lg); }
 
 /* Reduce motion for system preference */
 @media (prefers-reduced-motion: reduce) {
