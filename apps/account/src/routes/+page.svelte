@@ -168,7 +168,7 @@
                     </div>
 
                     <!-- Help text -->
-                    <div class="mt-4 text-center text-xs text-[var(--muted)]">
+                    <!-- <div class="mt-4 text-center text-xs text-[var(--muted)]">
                         Don't have a NeoDB account?
                         <a
                             href="https://neodb.social"
@@ -178,7 +178,7 @@
                         >
                             Get started
                         </a>
-                    </div>
+                    </div> -->
                 </form>
             </Card>
         </div>

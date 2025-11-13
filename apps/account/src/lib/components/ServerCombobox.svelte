@@ -162,7 +162,7 @@
 	<Combobox bind:value>
 		{#snippet children(combobox)}
 			<label for={combobox.ids.input} class="block text-sm font-medium text-[var(--text)]">
-				NeoDB Server
+				NeoDB Instance
 			</label>
 
             <div class="relative">
@@ -275,7 +275,7 @@
 			{/if}
 
 			<p class="text-xs text-[var(--muted)]">
-				Select a server or enter your own NeoDB instance domain
+				Select or enter the address of your NeoDB instance.
 			</p>
 		{/snippet}
 	</Combobox>
