@@ -5,7 +5,7 @@
     "build": "npx tsc --noEmit",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-		"prepare:db:dev": "npm run auth:update && npm run db:generate && npm run db:migrate:dev",
+    "prepare:db:dev": "npm run auth:update && npm run db:generate && npm run db:migrate:dev",
     "auth:generate": "npx --yes @better-auth/cli@latest generate --config src/auth/index.ts --output src/db/auth.schema.ts -y",
     "auth:format": "npx --yes prettier --write src/db/auth.schema.ts",
     "auth:update": "npm run auth:generate && npm run auth:format",
@@ -16,20 +16,20 @@
     "db:studio:prod": "NODE_ENV=production drizzle-kit studio"
   },
   "dependencies": {
-    "better-auth": "^1.2.8",
+    "better-auth": "^1.3.34",
     "better-auth-cloudflare": "^0.2.8",
-    "drizzle-orm": "^0.44.5",
-    "hono": "^4.7.11"
+    "drizzle-orm": "^0.44.7",
+    "hono": "^4.10.5"
   },
   "devDependencies": {
-    "@types/node": "^22.15.30",
-    "drizzle-kit": "^0.31.1",
-    "typescript": "^5.8.3",
-    "wrangler": "^4.4.0",
-    "@repo/types": "workspace:*",
-    "@repo/utils": "workspace:*",
+    "@cloudflare/workers-types": "^4.20251111.0",
     "@repo/eslint-config": "workspace:*",
+    "@repo/types": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@cloudflare/workers-types": "^4.20250606.0"
+    "@repo/utils": "workspace:*",
+    "@types/node": "^24.10.1",
+    "drizzle-kit": "^0.31.6",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.47.0"
   }
 }
