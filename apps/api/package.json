@@ -27,9 +27,7 @@
     "@repo/types": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@repo/utils": "workspace:*",
-    "@types/node": "^24.10.1",
     "drizzle-kit": "^0.31.6",
-    "typescript": "^5.9.3",
     "wrangler": "^4.47.0"
   }
 }
