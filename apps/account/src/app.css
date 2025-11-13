@@ -1,7 +1,34 @@
 @import 'tailwindcss';
 
+/* Apple‑style design tokens */
 :root {
-  --accent: rgb(48 102 92);
+  /* Accent (iOS/macOS system blue) */
+  --accent: #007aff;
+
+  /* Surfaces and text */
+  --bg: #f5f5f7;          /* Window background */
+  --surface: #ffffff;      /* Cards, sheets */
+  --hover: #f2f2f7;        /* Hover/tap background */
+  --border: #e5e5ea;       /* Separator lines */
+  --text: #1c1c1e;         /* Primary text */
+  --muted: #6e6e73;        /* Secondary text */
+
+  /* Utility tints */
+  --accent-tint: rgba(0, 122, 255, 0.08);
+  --accent-tint-border: rgba(0, 122, 255, 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --hover: #2c2c2e;
+    --border: #2c2c2e;
+    --text: #ffffff;
+    --muted: #a1a1a6;
+    --accent-tint: rgba(10, 132, 255, 0.18);
+    --accent-tint-border: rgba(10, 132, 255, 0.4);
+  }
 }
 
 html, body {
@@ -12,4 +39,16 @@ html, body {
 
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Reduce motion for system preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

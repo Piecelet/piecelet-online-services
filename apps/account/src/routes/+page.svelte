@@ -12,6 +12,7 @@
   let loading = $state(false);
   let fetchingServers = $state(true);
   let autoOpened = $state(false);
+  let inputRef: HTMLInputElement | undefined;
 
   const session = useSession();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
@@ -34,6 +35,10 @@
     await loadServers();
   });
 
+  const DEFAULT_SERVERS: Server[] = [
+    { domain: 'neodb.social', description: 'Public NeoDB server' }
+  ];
+
   async function loadServers() {
     fetchingServers = true;
     try {
@@ -50,8 +55,8 @@
       log('loadServers: normalized length', servers.length, 'sample', servers.slice(0, 5));
     } catch (e) {
       log('loadServers: error', e);
-      // No fallback — if none, show none
-      servers = [];
+      // Fallback to a minimal known server so UI stays useful
+      servers = DEFAULT_SERVERS;
     } finally {
       fetchingServers = false;
       log('loadServers: done. servers length =', servers.length);
@@ -146,7 +151,8 @@
 
   function handleLogin() {
     error = '';
-    const domain = (value || search).toString().trim();
+    const typed = inputRef?.value ?? '';
+    const domain = (value || typed || search).toString().trim();
     log('handleLogin value =', domain);
     if (!domain) {
       error = 'Please select or enter a server domain';
@@ -178,41 +184,50 @@
   // no-op helper removed for minimal surface
 </script>
 
-<div class="min-h-screen bg-neutral-50">
+<div class="min-h-screen bg-[var(--bg)]">
   <div class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6">
     <div class="mb-8 text-center">
-      <h1 class="text-4xl font-semibold tracking-tight text-neutral-900">Piecelet Account</h1>
-      <p class="mt-2 text-sm text-neutral-600">Sign in to continue</p>
+      <h1 class="text-4xl font-semibold tracking-tight text-[var(--text)]">Piecelet Account</h1>
+      <p class="mt-2 text-sm text-[var(--muted)]">Sign in to continue</p>
     </div>
 
-    <div class="rounded-2xl bg-white p-8 border border-neutral-200">
+    <div class="rounded-2xl bg-[var(--surface)] p-8 border border-[var(--border)] shadow-sm">
       {#if error}
-        <div class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>
+        <div class="mb-4 rounded-xl border border-red-200/60 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>
       {/if}
 
       <div class="space-y-3">
-        <label class="block text-sm font-medium text-neutral-800">NeoDB Server</label>
+        <label for="server" class="block text-sm font-medium text-[var(--text)]">NeoDB Server</label>
 
         <div class="relative">
           <Combobox.Root bind:open={open} bind:value={value}>
             <Combobox.Input
+              id="server"
               placeholder="neodb.social"
               disabled={loading}
               on:keydown={onInputKeyDown}
-              on:input={(e) => (search = (e.currentTarget as HTMLInputElement).value)}
-              class="w-full rounded-xl border border-neutral-300/80 bg-white px-3 py-2.5 text-[15px] text-neutral-900 outline-none ring-0 transition focus-visible:border-[rgb(48_102_92)] focus-visible:ring-2 focus-visible:ring-[rgb(48_102_92)] disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
+              bind:this={inputRef}
+              on:input={(e) => {
+                error = '';
+                search = (e.currentTarget as HTMLInputElement).value;
+              }}
+              class="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-[15px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none ring-0 transition focus-visible:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:bg-[color-mix(in_oklab,_var(--surface)_92%,_black)] disabled:text-[var(--muted)]"
             />
-            <Combobox.Content class="z-50 mt-1 max-h-72 overflow-auto rounded-xl border border-neutral-200 bg-white p-1.5">
+            <Combobox.Content class="z-50 mt-1 max-h-72 overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-sm">
               {#if filteredServers.length === 0}
-                <div class="px-3 py-2 text-sm text-neutral-500">
-                  {fetchingServers ? 'Loading servers…' : 'No suggestions. Type to enter manually.'}
+                <div class="px-3 py-2 text-sm text-[var(--muted)]">
+                  {#if search}
+                    Press Enter to use "{search}"
+                  {:else}
+                    {fetchingServers ? 'Loading servers…' : 'Type a domain to continue'}
+                  {/if}
                 </div>
               {:else}
                 {#each filteredServers as s (s.domain)}
-                  <Combobox.Item value={s.domain} class="cursor-pointer rounded-lg px-3 py-2 text-[15px] text-neutral-900 data-[highlighted]:bg-neutral-100">
+                  <Combobox.Item value={s.domain} class="cursor-pointer rounded-lg px-3 py-2 text-[15px] text-[var(--text)] data-[highlighted]:bg-[var(--hover)]">
                     <div class="font-medium">{s.domain}</div>
                     {#if s.description}
-                      <div class="text-xs text-neutral-500">{s.description}</div>
+                      <div class="text-xs text-[var(--muted)]">{s.description}</div>
                     {/if}
                   </Combobox.Item>
                 {/each}
@@ -220,7 +235,7 @@
             </Combobox.Content>
           </Combobox.Root>
         </div>
-        <p class="text-xs text-neutral-500">Select from list or type a domain</p>
+        <p class="text-xs text-[var(--muted)]">Select from list or type a domain</p>
 
         <!-- Always-visible light suggestions -->
         {#if topSuggestions.length > 0}
@@ -232,7 +247,7 @@
                   value = s.domain;
                   search = s.domain;
                 }}
-                class="rounded-full border border-neutral-300/80 px-3 py-1 text-xs text-neutral-800 hover:bg-neutral-100"
+                class="rounded-full border border-[var(--accent-tint-border)] bg-[var(--accent-tint)] px-3 py-1 text-xs text-[var(--text)] hover:bg-[var(--hover)]"
                 aria-label={`Use ${s.domain}`}
               >
                 {s.domain}
@@ -246,18 +261,18 @@
         type="button"
         onclick={handleLogin}
         disabled={loading}
-        class="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[rgb(48_102_92)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(48_102_92)] disabled:cursor-not-allowed disabled:opacity-60"
+        class="mt-6 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? 'Redirecting…' : 'Sign in with NeoDB'}
       </button>
     </div>
 
-    <div class="mt-6 text-center text-xs text-neutral-500">
+    <div class="mt-6 text-center text-xs text-[var(--muted)]">
       <p>
         By signing in, you agree to our
-        <a href="/terms" class="text-[rgb(48_102_92)] hover:underline">Terms of Service</a>
+        <a href="/terms" class="text-[var(--accent)] hover:underline">Terms of Service</a>
         and
-        <a href="/privacy" class="text-[rgb(48_102_92)] hover:underline">Privacy Policy</a>
+        <a href="/privacy" class="text-[var(--accent)] hover:underline">Privacy Policy</a>
       </p>
     </div>
   </div>

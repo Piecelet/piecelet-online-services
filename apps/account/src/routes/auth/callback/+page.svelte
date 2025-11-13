@@ -48,16 +48,16 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+<div class="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
 	<div class="w-full max-w-md text-center">
 		{#if loading}
-    			<div class="rounded-2xl bg-white px-8 py-12 border border-neutral-200">
-				<div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-[rgb(48_102_92)]"></div>
-				<h2 class="mt-4 text-lg font-semibold text-gray-900">Completing sign in...</h2>
-				<p class="mt-2 text-sm text-gray-600">Please wait while we verify your authentication.</p>
+	    			<div class="rounded-2xl bg-[var(--surface)] px-8 py-12 border border-[var(--border)] shadow-sm">
+				<div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--accent)]"></div>
+				<h2 class="mt-4 text-lg font-semibold text-[var(--text)]">Completing sign in...</h2>
+				<p class="mt-2 text-sm text-[var(--muted)]">Please wait while we verify your authentication.</p>
 			</div>
 		{:else if error}
-    			<div class="rounded-2xl bg-white px-8 py-12 border border-neutral-200">
+	    			<div class="rounded-2xl bg-[var(--surface)] px-8 py-12 border border-[var(--border)] shadow-sm">
 				<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
 					<svg
 						class="h-6 w-6 text-red-600"
@@ -73,11 +73,11 @@
 						/>
 					</svg>
 				</div>
-				<h2 class="mt-4 text-lg font-semibold text-gray-900">Authentication Failed</h2>
-				<p class="mt-2 text-sm text-gray-600">{error}</p>
+				<h2 class="mt-4 text-lg font-semibold text-[var(--text)]">Authentication Failed</h2>
+				<p class="mt-2 text-sm text-[var(--muted)]">{error}</p>
 				<button
 					onclick={handleRetry}
-					class="mt-6 inline-flex justify-center rounded-md bg-[rgb(48_102_92)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[rgb(48_102_92)] focus:ring-offset-2"
+					class="mt-6 inline-flex justify-center rounded-2xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2"
 				>
 					Try Again
 				</button>
