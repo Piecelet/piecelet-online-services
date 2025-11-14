@@ -1,135 +1,114 @@
-# Turborepo starter
+# Piecelet Connect
 
-This Turborepo starter is maintained by the Turborepo core team.
+Piecelet Connect is the online service that lets users connect their NeoDB accounts to Piecelet and manage authentication and sessions for the Piecelet apps.
 
-## Using this example
+This repository is a Turborepo monorepo (root package name: `piecelet-online-services`) and was previously named `piecelet-account` before being renamed to `piecelet-connect`.
 
-Run the following command:
+## Project structure
 
-```sh
-npx create-turbo@latest
+- `apps/account` – SvelteKit 2 + Svelte 5 frontend for Piecelet Connect, deployed to Cloudflare (Pages/Workers). Handles NeoDB sign‑in, a simple dashboard, and session management.
+- `apps/api` – Cloudflare Workers API built with Hono, Better Auth, Drizzle ORM, Cloudflare D1, and KV. Provides auth routes, NeoDB OAuth, geolocation‑aware session handling, and CORS.
+- `packages/eslint-config` – Shared ESLint configuration used across the monorepo.
+- `packages/typescript-config` – Shared TypeScript configuration presets.
+- `packages/types` – Shared TypeScript types.
+- `packages/utils` – Shared utility functions for Workers and other packages.
+
+## Requirements
+
+- Node.js 18+  
+- pnpm  
+- Cloudflare account with Workers, D1, and KV enabled  
+- Wrangler CLI (`npm install -g wrangler`)  
+
+## Getting started
+
+Install dependencies at the repo root:
+
+```bash
+pnpm install
 ```
 
-## What's inside?
+### Run the API (Cloudflare Worker)
 
-This Turborepo includes the following packages/apps:
+The API lives in `apps/api` and uses Cloudflare D1 and KV bindings configured via `wrangler.jsonc`.
 
-### Apps and Packages
+1. Copy and customise the Wrangler config if needed:
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+   ```bash
+   cd apps/api
+   cp wrangler-template.jsonc wrangler.jsonc  # if you don't already have one
+   # fill in ACCOUNT_DATABASE / ACCOUNT_KV details for your Cloudflare account
+   ```
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+2. Start the API in development:
 
-### Utilities
+   ```bash
+   pnpm dev
+   ```
 
-This Turborepo has some additional tools already setup for you:
+   This runs `wrangler dev` and serves the Better Auth + Hono API locally (see `apps/api/README.md` and `apps/api/CORS.md` for endpoints and CORS details).
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### Run the account frontend (Piecelet Connect UI)
 
-### Build
+The frontend lives in `apps/account` and is a SvelteKit app configured for Cloudflare Pages/Workers.
 
-To build all apps and packages, run the following command:
+1. Create and configure environment variables:
 
-```
-cd my-turborepo
+   ```bash
+   cd apps/account
+   cp .env.example .env  # first time only
+   ```
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+   Set `VITE_API_URL` in `.env` (or via Wrangler vars) to point at your API base URL, e.g. your local `wrangler dev` URL or a deployed `apps/api` Worker.
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+2. Start the SvelteKit dev server:
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+   ```bash
+   pnpm dev
+   ```
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+   The UI will be available on the default Vite dev port (usually `http://localhost:5173`) and will talk to the API configured via `VITE_API_URL`.
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+### Running everything via Turborepo
 
-### Develop
+From the repository root you can also use the Turborepo scripts:
 
-To develop all apps and packages, run the following command:
+```bash
+# Run all dev targets (API + frontend) in watch mode
+pnpm dev
 
-```
-cd my-turborepo
+# Build all apps and packages
+pnpm build
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+# Lint and type-check
+pnpm lint
+pnpm type-check
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+You can filter to a single app using Turbo filters if you prefer more granular control, for example:
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+pnpm dev --filter api
+pnpm dev --filter account
 ```
 
-### Remote Caching
+## Deployment
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+Both apps are configured for Cloudflare:
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+- `apps/api` – deploy with `pnpm deploy` from `apps/api` (Cloudflare Workers, D1, KV).  
+- `apps/account` – deploy with `pnpm deploy` from `apps/account` (SvelteKit Cloudflare adapter).  
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+For production, make sure:
 
-```
-cd my-turborepo
+- The API Worker has D1 and KV bindings configured (see `apps/api/wrangler-template.jsonc`).  
+- The account frontend has `VITE_API_URL` pointing at the deployed API (see `apps/account/wrangler-template.jsonc`).  
+- Allowed origins are kept in sync with `apps/api/src/config/origins.ts` and documented in `apps/api/CORS.md`.
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+## Additional documentation
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+- `apps/account/README.md` – details of the Piecelet Connect SvelteKit frontend and auth flow.  
+- `apps/api/README.md` – details of the Better Auth + Hono API.  
+- `apps/api/CORS.md` – CORS and origin configuration used by the API.  
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+If you are coming from the old `piecelet-account` repository, this is the same project, now renamed and organised as `piecelet-connect` with a clearer API/frontend split.
