@@ -3,7 +3,7 @@
 This file governs the use of the source code in the “Piecelet Connect” project hosted at:  
 `https://github.com/Piecelet/piecelet-connect`
 
-Unless explicitly stated otherwise in a specific file, all rights to this project are reserved by Piecelet.
+Unless explicitly stated otherwise in a specific file, all rights to this project are reserved by [lcandy2](https://github.com/lcandy2), the creator of [Piecelet](https://github.com/Piecelet).
 
 > This is a **source-available, but not open-source in the OSI/FSF sense** license at the time of writing.
 

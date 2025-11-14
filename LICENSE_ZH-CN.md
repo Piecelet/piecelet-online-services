@@ -6,7 +6,7 @@
 项目仓库地址：  
 `https://github.com/Piecelet/piecelet-connect`
 
-除非单个文件中另有声明，本项目的一切权利均由 Piecelet 保留。
+除非单个文件中另有声明，本项目的一切权利均由 [lcandy2](https://github.com/lcandy2)（[Piecelet](https://github.com/Piecelet) 的创建人）保留。
 
 > 截至本说明编写时，本项目为“源码可见（source-available），但并非 OSI/FSF 定义下的开源软件”。  
 
@@ -171,4 +171,3 @@ this license.
 
   The precise terms and conditions for copying, distribution and
 modification follow.
-
