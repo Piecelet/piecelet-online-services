@@ -1,129 +1,104 @@
-# Piecelet Connect License / Piecelet Connect 许可
+# Piecelet Connect License
 
 This file governs the use of the source code in the “Piecelet Connect” project hosted at:  
-本文件适用于托管在以下地址的 “Piecelet Connect” 项目源码：  
 `https://github.com/Piecelet/piecelet-connect`
 
-Unless explicitly stated otherwise in a specific file, all rights to this project are reserved by Piecelet.  
-除非单个文件中另有声明，本项目的一切权利均由 Piecelet 保留。
+Unless explicitly stated otherwise in a specific file, all rights to this project are reserved by Piecelet.
 
-> This is a **source-available, but not open-source in the OSI/FSF sense** license at the time of writing.  
-> 在本许可当前生效的阶段，本项目为“可阅源码但非开源（非 OSI / FSF 意义上的开源）”。
+> This is a **source-available, but not open-source in the OSI/FSF sense** license at the time of writing.
 
 ---
 
-## 1. Scope / 适用范围
+## 1. Scope
 
-- This license applies to all code, documentation and other content in this repository, except where a file explicitly states a different license.  
-  本许可适用于本仓库中的所有代码、文档及其它内容，除非该文件中明确声明采用其他许可。
-- “You” refers to any individual or legal entity accessing, cloning, or using this repository.  
-  “你”指任何访问、克隆或使用本仓库的个人或组织。
+- This license applies to all code, documentation and other content in this repository, except where a file explicitly states a different license.
+- “You” refers to any individual or legal entity accessing, cloning, or using this repository.
 
 ---
 
-## 2. Current License: Piecelet Source License（当前生效：Piecelet 源码许可）
+## 2. Current license: Piecelet Source License
 
-### 2.1 Permitted uses / 允许的行为
+### 2.1 Permitted uses
 
-You are granted a non-exclusive, non-transferable, revocable license to:  
-你获得一份非独占、不可转让、可撤销的许可，用于：
+You are granted a non-exclusive, non-transferable, revocable license to:
 
 1. **View and audit the source code**  
-   查看与审计本仓库源码，用于安全审查、学习、评估 Piecelet Connect 服务或相关研究。
+   View and review the source code in this repository for security auditing, learning, evaluation of the Piecelet Connect service, or related research.
 
 2. **Clone and run the project for yourself or internal use**  
-   克隆本仓库，并在你本人或你所在组织的内部环境中部署和运行本项目，  
-   只要该部署：
-   - 不对公众开放访问；且  
-   - 不作为向第三方提供的托管服务或产品。
+   Clone this repository and deploy and run the project in your own or your organisation’s internal environment, provided that such deployment:
+   - is not publicly accessible; and  
+   - is not offered as a hosted service or product to third parties.
 
 3. **Make local modifications for internal use**  
-   为满足你自身或内部使用需求，可以对项目进行本地修改，前提是这些修改不会被对外分发或提供给第三方使用。
+   Modify the project locally to meet your own or your organisation’s internal needs, provided that such modifications are not distributed or made available to third parties.
 
 4. **Submit contributions to this repository**  
-   在遵守本许可的前提下，通过 Pull Request 等方式向本仓库提交贡献（详见第 3 条）。  
+   Submit contributions to this repository via pull requests or similar mechanisms, subject to this license (see section 3).
 
-### 2.2 Prohibited uses / 禁止的行为
+### 2.2 Prohibited uses
 
-Unless you have prior written permission from Piecelet, you **may not**:  
-除非事先获得 Piecelet 的书面许可，你 **不得**：
+Unless you have prior written permission from Piecelet, you **may not**:
 
 1. **Redistribute the code or binaries**  
-   以任何形式向第三方分发本项目的全部或部分源码、编译产物或基于本项目的打包版本，  
-   无论该分发是收费还是免费、开源还是闭源。
+   Distribute any part of this project’s source code, compiled artifacts, or packaged versions to third parties, in any form, whether for free or for a fee, and whether open- or closed-source.
 
 2. **Offer the project as a public service or product**  
-   将本项目（原版或修改版）作为面向公众或第三方的在线服务、SaaS 产品、商用产品或集成解决方案提供。
+   Offer this project (original or modified) as an online service, SaaS product, commercial product, or integrated solution that is accessible to the public or to third parties.
 
 3. **Create and distribute derivative works**  
-   基于本项目创建衍生产品、库、框架或其它软件，并向第三方分发该等衍生作品（包括但不限于修改版、二次封装、集成到其它产品中后再对外提供）。
+   Create derivative products, libraries, frameworks, or other software based on this project and distribute those derivatives to third parties (including but not limited to modified versions, wrappers, or integrations into other products that are then provided to others).
 
 4. **Use the Piecelet / Piecelet Connect name or logo**  
-   使用“Piecelet”、“Piecelet Connect”名称或任何相关 logo、商标、品牌元素，用于推广、标注、命名你的产品或服务，或使他人误以为你的项目与 Piecelet 存在关联或获得官方认可。
+   Use the names “Piecelet” or “Piecelet Connect”, or any related logos, trademarks, or branding elements, to promote or label your products or services, or in a way that suggests your project is affiliated with or endorsed by Piecelet.
 
 5. **Remove or obscure copyright and license notices**  
-   删除、隐藏或篡改本项目中的版权声明、许可证文本或法律通知。
+   Remove, hide, or alter copyright notices, license text, or legal notices included in this project.
 
-### 2.3 No warranty / 无担保
+### 2.3 No warranty
 
-This software is provided “as is”, without any express or implied warranty. Piecelet makes no guarantees regarding fitness for a particular purpose, availability, security, or correctness.  
-本软件按“现状”提供，不作任何明示或暗示担保。Piecelet 不保证本软件适用于任何特定目的、可用性、安全性或正确性。
+This software is provided “as is”, without any express or implied warranty. Piecelet makes no guarantees regarding fitness for a particular purpose, availability, security, or correctness.
 
-To the maximum extent permitted by applicable law, Piecelet shall not be liable for any damages arising from the use or inability to use this software.  
-在适用法律允许的最大范围内，Piecelet 不对因使用或无法使用本软件而产生的任何损失承担责任。
+To the maximum extent permitted by applicable law, Piecelet shall not be liable for any damages arising from the use of, or inability to use, this software.
 
 ---
 
-## 3. Contributions and future AGPL licensing / 贡献与未来 AGPL 授权
+## 3. Contributions and future AGPL licensing
 
-### 3.1 Contributions / 贡献条款
+### 3.1 Contributions
 
-By submitting any contribution (including code, documentation, or other content) to this repository, you agree that:  
-当你向本仓库提交任何贡献（包括代码、文档或其他内容）时，你同意：
+By submitting any contribution (including code, documentation, or other content) to this repository, you agree that:
 
-1. You are legally permitted to make the contribution and to grant the rights described here.  
-   你在法律上有权进行该贡献并授予下述权利。
+1. You are legally permitted to make the contribution and to grant the rights described here.
 
-2. You grant Piecelet a worldwide, perpetual, irrevocable, royalty-free license to use, modify, reproduce, distribute, and relicense your contribution as part of this project under:  
-   你向 Piecelet 授予一项全球范围内、永久、不可撤销、免版税的许可，使 Piecelet 可以：
-   - 使用、修改、复制、分发你的贡献；以及  
-   - 将你的贡献作为本项目的一部分，在本许可以及未来本项目可能采用的其他许可证（包括下文所述 AGPL-3.0 授权）下重新授权。
+2. You grant Piecelet a worldwide, perpetual, irrevocable, royalty-free license to use, modify, reproduce, distribute, and relicense your contribution as part of this project under:
+   - this Piecelet Source License; and  
+   - any future license under which this project may be offered, including the AGPL-3.0 license described in section 3.2 and section 4.
 
-3. You agree that your contributions may, in the future, be distributed under the AGPL-3.0 when the condition in section 3.2 is met.  
-   你同意，当第 3.2 条所述条件满足时，你的贡献可以在 AGPL-3.0 许可下发布。
+3. You agree that your contributions may, in the future, be distributed under the AGPL-3.0 license when the condition in section 3.2 is met.
 
-### 3.2 Future AGPL license when archived / 仓库归档时的未来 AGPL 授权
+### 3.2 Future AGPL license when archived
 
-For the purposes of this section, the **“Archived Condition”** means:  
-在本条款中，“**归档条件（Archived Condition）**” 指：
+For the purposes of this section, the **“Archived Condition”** means:
 
-- The GitHub repository located at `https://github.com/Piecelet/piecelet-connect` is marked as “archived” by the repository owner.  
-  GitHub 上位于 `https://github.com/Piecelet/piecelet-connect` 的仓库被仓库所有者标记为 “archived”（已归档）。
+- The GitHub repository located at `https://github.com/Piecelet/piecelet-connect` is marked as “archived” by the repository owner.
 
-When, and only when, the Archived Condition is met:  
-当且仅当满足上述归档条件时：
+When, and only when, the Archived Condition is met:
 
-1. All contents of this repository that exist at the time of archiving become **additionally** licensed under the GNU Affero General Public License version 3 (AGPL-3.0) as published by the Free Software Foundation.  
-   本仓库在归档时刻所包含的全部内容，将 **额外** 以自由软件基金会发布的 GNU Affero General Public License 第 3 版（AGPL-3.0）授权。
+1. All contents of this repository that exist at the time of archiving become **additionally** licensed under the GNU Affero General Public License version 3 (AGPL-3.0) as published by the Free Software Foundation.
 
 2. At that time, recipients may choose to use such content either under:  
-   在该时刻起，接收者可以选择按以下任一许可使用该等内容：  
    - the Piecelet Source License described in sections 1–2 above; **or**  
-     上文第 1–2 条所述的 Piecelet 源码许可；**或**  
-   - the AGPL-3.0 license (see section 4 below for the full text).  
-     AGPL-3.0 许可（完整文本见下文第 4 条）。
+   - the AGPL-3.0 license (see section 4 below for the full text).
 
-3. For content that has already been published in this repository before or at the time of archiving, this additional AGPL-3.0 grant is irrevocable.  
-   对于在归档前或归档时已发布于本仓库的内容，上述 AGPL-3.0 额外授权是不可撤销的。
+3. For content that has already been published in this repository before or at the time of archiving, this additional AGPL-3.0 grant is irrevocable.
 
-4. **Before** the Archived Condition is met, nothing in this file shall be interpreted as granting you rights under AGPL-3.0; during that time, only the Piecelet Source License in sections 1–2 applies.  
-   在归档条件尚未满足之前，本文件中的任何内容均不应被解释为授予你 AGPL-3.0 下的权利；在此期间，仅适用第 1–2 条所述的 Piecelet 源码许可。
+4. **Before** the Archived Condition is met, nothing in this file shall be interpreted as granting you rights under AGPL-3.0; during that time, only the Piecelet Source License in sections 1–2 applies.
 
 ---
 
-## 4. AGPL-3.0 文本 / AGPL-3.0 Text (for archived use only)
+## 4. AGPL-3.0 Text (for archived use only)
 
-下方是 GNU Affero General Public License 第 3 版（AGPL-3.0）的原文，仅在上文第 3 条所述“归档条件”满足后，才作为额外授权生效。  
 The following is the full text of the GNU Affero General Public License version 3 (AGPL-3.0). It only becomes an additional effective license once the “Archived Condition” described in section 3 above is met.
 
                     GNU AFFERO GENERAL PUBLIC LICENSE
