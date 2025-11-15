@@ -1,6 +1,7 @@
 import type { CloudflareBindings } from "../env";
 import { drizzle } from "drizzle-orm/d1";
-import { schema } from "../db";
+import { schema, account as accountTable, neodbClient as neodbClientTable } from "../db";
+import { and, eq, lt, or, isNull } from "drizzle-orm";
 import { getClient } from "../neodb/store";
 import { revokeToken } from "../neodb/mastodon";
 
@@ -11,7 +12,7 @@ import { revokeToken } from "../neodb/mastodon";
 export async function revokeStaleTokens(env: CloudflareBindings): Promise<void> {
   console.log("[Cron] Starting stale token revocation job");
 
-  const db = drizzle(env.ACCOUNT_DATABASE, { schema, logger: true });
+  const db = drizzle(env.ACCOUNT_DATABASE, { schema });
 
   try {
     // Calculate the cutoff time (24 hours ago)
@@ -20,46 +21,49 @@ export async function revokeStaleTokens(env: CloudflareBindings): Promise<void> 
     console.log("[Cron] Cutoff time:", cutoffTime.toISOString());
 
     // Find all non-redacted NeoDB accounts that haven't been updated in 24+ hours
-    const staleAccounts = await db.query.account.findMany({
-      where: (account, { and, eq, lt, or, isNull }) =>
+    const staleAccounts = await db
+      .select()
+      .from(accountTable)
+      .where(
         and(
-          eq(account.providerId, "neodb"),
+          eq(accountTable.providerId, "neodb"),
           or(
-            eq(account.isAccessTokenRedacted, false),
-            isNull(account.isAccessTokenRedacted)
+            eq(accountTable.isAccessTokenRedacted, false),
+            isNull(accountTable.isAccessTokenRedacted)
           ),
-          lt(account.updatedAt, cutoffTime)
-        ),
-    });
+          lt(accountTable.updatedAt, cutoffTime)
+        )
+      )
+      .all();
 
     console.log(`[Cron] Found ${staleAccounts.length} stale accounts to process`);
 
     let revokedCount = 0;
     let failedCount = 0;
 
-    for (const account of staleAccounts) {
+    for (const acc of staleAccounts) {
       try {
         // Skip if no access token
-        if (!account.accessToken || account.accessToken.startsWith("ACCESS_TOKEN_REDACTED_AT_")) {
+        if (!acc.accessToken || acc.accessToken.startsWith("ACCESS_TOKEN_REDACTED_AT_")) {
           continue;
         }
 
         // Extract instance from accountId (format: url or @username@instance)
         let instanceOrigin: string;
-        if (account.accountId.startsWith("http")) {
-          const url = new URL(account.accountId);
+        if (acc.accountId.startsWith("http")) {
+          const url = new URL(acc.accountId);
           instanceOrigin = url.origin;
-        } else if (account.accountId.includes("@")) {
+        } else if (acc.accountId.includes("@")) {
           // Format: @username@instance
-          const parts = account.accountId.split("@").filter(Boolean);
+          const parts = acc.accountId.split("@").filter(Boolean);
           if (parts.length >= 2) {
             instanceOrigin = `https://${parts[parts.length - 1]}`;
           } else {
-            console.warn(`[Cron] Invalid accountId format: ${account.accountId}`);
+            console.warn(`[Cron] Invalid accountId format: ${acc.accountId}`);
             continue;
           }
         } else {
-          console.warn(`[Cron] Invalid accountId format: ${account.accountId}`);
+          console.warn(`[Cron] Invalid accountId format: ${acc.accountId}`);
           continue;
         }
 
@@ -68,9 +72,11 @@ export async function revokeStaleTokens(env: CloudflareBindings): Promise<void> 
           {
             // Adapter methods for the store
             findOne: async (opts: any) => {
-              const result = await db.query.neodbClient.findFirst({
-                where: (neodbClient, { eq }) => eq(neodbClient.instance, opts.where[0].value),
-              });
+              const result = await db
+                .select()
+                .from(neodbClientTable)
+                .where(eq(neodbClientTable.instance, opts.where[0].value))
+                .get();
               return result || null;
             },
           } as any,
@@ -84,28 +90,28 @@ export async function revokeStaleTokens(env: CloudflareBindings): Promise<void> 
 
         // Revoke the token from NeoDB
         try {
-          await revokeToken(instanceOrigin, client, account.accessToken);
-          console.log(`[Cron] Successfully revoked token for account: ${account.id}`);
+          await revokeToken(instanceOrigin, client, acc.accessToken);
+          console.log(`[Cron] Successfully revoked token for account: ${acc.id}`);
         } catch (e) {
-          console.error(`[Cron] Failed to revoke token for account ${account.id}:`, e);
+          console.error(`[Cron] Failed to revoke token for account ${acc.id}:`, e);
           // Continue even if revocation fails
         }
 
         // Update the access token in the database
         const timestamp = new Date().toISOString();
         await db
-          .update(schema.account)
+          .update(accountTable)
           .set({
             accessToken: `ACCESS_TOKEN_REDACTED_AT_${timestamp}`,
             isAccessTokenRedacted: true,
             updatedAt: new Date(),
           })
-          .where(eq => eq.id === account.id);
+          .where(eq(accountTable.id, acc.id));
 
-        console.log(`[Cron] Successfully redacted token for account: ${account.id}`);
+        console.log(`[Cron] Successfully redacted token for account: ${acc.id}`);
         revokedCount++;
       } catch (error) {
-        console.error(`[Cron] Error processing account ${account.id}:`, error);
+        console.error(`[Cron] Error processing account ${acc.id}:`, error);
         failedCount++;
       }
     }
