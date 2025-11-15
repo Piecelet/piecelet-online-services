@@ -1,4 +1,4 @@
-import { createAuthEndpoint, createAuthMiddleware } from "better-auth/api";
+import { createAuthEndpoint, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { generateState, parseState, handleOAuthUserInfo } from "better-auth/oauth2";
 import { setSessionCookie } from "better-auth/cookies";
 import type { BetterAuthPlugin } from "better-auth";
@@ -277,56 +277,22 @@ export const neodbOAuthPlugin = {
             return;
           }
 
-          // Get session token from cookie
-          const sessionCookieName = ctx.context.authCookies.sessionToken.name;
-          let sessionToken = ctx.getCookie(sessionCookieName);
+          // Get session using Better Auth's official API
+          const session = await getSessionFromCtx(ctx);
 
-          console.log("[NeoDB Plugin] Session cookie name:", sessionCookieName);
-          console.log("[NeoDB Plugin] Session token from cookie:", sessionToken ? "exists" : "missing");
+          console.log("[NeoDB Plugin] Session info:", {
+            hasSession: !!session,
+            userId: session?.user?.id
+          });
 
-          if (!sessionToken) {
-            console.log("[NeoDB Plugin] No session token found in cookie, skipping");
-            return;
-          }
-
-          // Extract the base token (before the signature part)
-          // Cookie format: "token.signature", DB stores only "token"
-          if (sessionToken.includes(".")) {
-            const parts = sessionToken.split(".");
-            sessionToken = parts[0] || sessionToken;
-            console.log("[NeoDB Plugin] Extracted base token (before signature)");
-          }
-
-          // Get session from database using the token
-          let session;
-          try {
-            session = await adapter.findOne<{
-              id: string;
-              userId: string;
-              token: string;
-              expiresAt: Date;
-            }>({
-              model: "session",
-              where: [{ field: "token", value: sessionToken }],
-            });
-
-            console.log("[NeoDB Plugin] Session from DB:", {
-              hasSession: !!session,
-              userId: session?.userId
-            });
-          } catch (e) {
-            console.error("[NeoDB Plugin] Failed to fetch session from DB:", e);
-            return;
-          }
-
-          if (!session?.userId) {
+          if (!session?.user?.id) {
             console.log("[NeoDB Plugin] No session or user ID found, skipping");
             return;
           }
 
           try {
             // Find all NeoDB accounts for this user
-            console.log("[NeoDB Plugin] Looking for NeoDB accounts for user:", session.userId);
+            console.log("[NeoDB Plugin] Looking for NeoDB accounts for user:", session.user.id);
             const accounts = await adapter.findMany<{
               id: string;
               userId: string;
@@ -337,7 +303,7 @@ export const neodbOAuthPlugin = {
             }>({
               model: "account",
               where: [
-                { field: "userId", value: session.userId },
+                { field: "userId", value: session.user.id },
                 { field: "providerId", value: "neodb" },
               ],
             });
