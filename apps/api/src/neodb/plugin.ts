@@ -1,10 +1,10 @@
-import { createAuthEndpoint } from "better-auth/api";
+import { createAuthEndpoint, createAuthMiddleware } from "better-auth/api";
 import { generateState, parseState, handleOAuthUserInfo } from "better-auth/oauth2";
 import { setSessionCookie } from "better-auth/cookies";
 import type { BetterAuthPlugin } from "better-auth";
 
 import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, extractNeoDBUserInfo } from "./util";
-import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe } from "./mastodon";
+import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe, revokeToken } from "./mastodon";
 import type { NeoDBMe, AuthResultData } from "./types";
 import { getClient, popState, saveState } from "./store";
 
@@ -259,5 +259,103 @@ export const neodbOAuthPlugin = {
         throw ctx.redirect(String(to));
       },
     ),
+  },
+  hooks: {
+    after: [
+      {
+        matcher: (context) => {
+          return context.path === "/sign-out";
+        },
+        handler: createAuthMiddleware(async (ctx) => {
+          // Get the user session before it's deleted
+          const session = ctx.context.session;
+          if (!session?.user?.id) {
+            return;
+          }
+
+          const adapter = ctx.context.adapter;
+          if (!adapter) {
+            return;
+          }
+
+          try {
+            // Find all NeoDB accounts for this user
+            const accounts = await adapter.findMany<{
+              id: string;
+              userId: string;
+              providerId: string;
+              accountId: string;
+              accessToken: string | null;
+              refreshToken: string | null;
+            }>({
+              model: "account",
+              where: [
+                { field: "userId", value: session.user.id },
+                { field: "providerId", value: "neodb" },
+              ],
+            });
+
+            if (!accounts || accounts.length === 0) {
+              return;
+            }
+
+            // Process each NeoDB account
+            for (const account of accounts) {
+              if (!account.accessToken || account.accessToken.startsWith("ACCESS_TOKEN_REDACTED_AT_")) {
+                continue;
+              }
+
+              // Extract instance from accountId (format: url or @username@instance)
+              let instanceOrigin: string;
+              try {
+                if (account.accountId.startsWith("http")) {
+                  const url = new URL(account.accountId);
+                  instanceOrigin = url.origin;
+                } else if (account.accountId.includes("@")) {
+                  // Format: @username@instance
+                  const parts = account.accountId.split("@").filter(Boolean);
+                  if (parts.length >= 2) {
+                    instanceOrigin = `https://${parts[parts.length - 1]}`;
+                  } else {
+                    continue;
+                  }
+                } else {
+                  continue;
+                }
+              } catch {
+                continue;
+              }
+
+              // Get the NeoDB client for this instance
+              const client = await getClient(adapter, instanceOrigin);
+              if (!client) {
+                continue;
+              }
+
+              // Revoke the token from NeoDB
+              try {
+                await revokeToken(instanceOrigin, client, account.accessToken);
+              } catch (e) {
+                console.error("Failed to revoke NeoDB token:", e);
+                // Continue even if revocation fails
+              }
+
+              // Update the access token in the database
+              const timestamp = new Date().toISOString();
+              await adapter.update({
+                model: "account",
+                where: [{ field: "id", value: account.id }],
+                update: {
+                  accessToken: `ACCESS_TOKEN_REDACTED_AT_${timestamp}`,
+                },
+              });
+            }
+          } catch (error) {
+            console.error("Error in NeoDB sign-out hook:", error);
+            // Don't throw - let sign-out proceed even if token revocation fails
+          }
+        }),
+      },
+    ],
   },
 } satisfies BetterAuthPlugin;

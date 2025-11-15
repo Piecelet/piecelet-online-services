@@ -100,3 +100,25 @@ export async function fetchMe(instanceOrigin: string, accessToken: string): Prom
   const me = (await meResp.json().catch(() => null)) as unknown;
   return parseNeodbMe(me);
 }
+
+export async function revokeToken(instanceOrigin: string, client: NeoDBClient, token: string): Promise<void> {
+  const body = new URLSearchParams();
+  body.set("client_id", client.client_id);
+  body.set("client_secret", client.client_secret);
+  body.set("token", token);
+
+  const resp = await fetch(`${instanceOrigin}/oauth/revoke`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+    body: body.toString(),
+  });
+
+  // According to Mastodon docs, the response is always 200 OK
+  // even if the token is invalid or already revoked
+  if (!resp.ok) {
+    throw new Error("token_revoke_failed");
+  }
+}
