@@ -271,27 +271,54 @@ export const neodbOAuthPlugin = {
         handler: createAuthMiddleware(async (ctx) => {
           console.log("[NeoDB Plugin] Sign-out hook handler triggered");
 
-          // Get the user session before sign-out deletes it
-          const session = ctx.context.session;
-          console.log("[NeoDB Plugin] Session info:", {
-            hasSession: !!session,
-            userId: session?.user?.id
-          });
-
-          if (!session?.user?.id) {
-            console.log("[NeoDB Plugin] No session or user ID, skipping");
-            return;
-          }
-
           const adapter = ctx.context.adapter;
           if (!adapter) {
             console.log("[NeoDB Plugin] No adapter available, skipping");
             return;
           }
 
+          // Get session token from cookie
+          const sessionCookieName = ctx.context.authCookies.sessionToken.name;
+          const sessionToken = ctx.getCookie(sessionCookieName);
+
+          console.log("[NeoDB Plugin] Session cookie name:", sessionCookieName);
+          console.log("[NeoDB Plugin] Session token from cookie:", sessionToken ? "exists" : "missing");
+
+          if (!sessionToken) {
+            console.log("[NeoDB Plugin] No session token found in cookie, skipping");
+            return;
+          }
+
+          // Get session from database using the token
+          let session;
+          try {
+            session = await adapter.findOne<{
+              id: string;
+              userId: string;
+              token: string;
+              expiresAt: Date;
+            }>({
+              model: "session",
+              where: [{ field: "token", value: sessionToken }],
+            });
+
+            console.log("[NeoDB Plugin] Session from DB:", {
+              hasSession: !!session,
+              userId: session?.userId
+            });
+          } catch (e) {
+            console.error("[NeoDB Plugin] Failed to fetch session from DB:", e);
+            return;
+          }
+
+          if (!session?.userId) {
+            console.log("[NeoDB Plugin] No session or user ID found, skipping");
+            return;
+          }
+
           try {
             // Find all NeoDB accounts for this user
-            console.log("[NeoDB Plugin] Looking for NeoDB accounts for user:", session.user.id);
+            console.log("[NeoDB Plugin] Looking for NeoDB accounts for user:", session.userId);
             const accounts = await adapter.findMany<{
               id: string;
               userId: string;
@@ -302,7 +329,7 @@ export const neodbOAuthPlugin = {
             }>({
               model: "account",
               where: [
-                { field: "userId", value: session.user.id },
+                { field: "userId", value: session.userId },
                 { field: "providerId", value: "neodb" },
               ],
             });
