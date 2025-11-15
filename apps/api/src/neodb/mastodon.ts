@@ -5,7 +5,7 @@ import { parseNeodbMe } from "./util";
 
 export async function registerMastodonApp(base: URL, redirectUri: string): Promise<NeoDBClient> {
   const body = new URLSearchParams();
-  body.set("client_name", "Piecelet Online");
+  body.set("client_name", "Piecelet Connect");
   body.set("redirect_uris", redirectUri);
   body.set("scopes", "read");
 
