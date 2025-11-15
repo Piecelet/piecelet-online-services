@@ -8,6 +8,7 @@ export async function registerMastodonApp(base: URL, redirectUri: string): Promi
   body.set("client_name", "Piecelet Connect");
   body.set("redirect_uris", redirectUri);
   body.set("scopes", "read");
+  body.set("website", "https://connect.piecelet.app/");
 
   const resp = await fetch(`${base.origin}/api/v1/apps`, {
     method: "POST",
