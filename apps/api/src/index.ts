@@ -362,25 +362,12 @@ app.get("/health", c => {
     return c.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Type helper for the scheduled handler
-type ExportedHandlerScheduledHandler<Env = unknown> = (
-    event: {
-        scheduledTime: number;
-        cron: string;
-    },
-    env: Env,
-    ctx: {
-        waitUntil: (promise: Promise<any>) => void;
-        passThroughOnException: () => void;
-    }
-) => void | Promise<void>;
-
 // Export as a complete Cloudflare Workers module
 export default {
     fetch: app.fetch,
-    scheduled: async (event, env, ctx) => {
-        console.log("[Cron] Scheduled event triggered at:", new Date(event.scheduledTime).toISOString());
-        console.log("[Cron] Cron expression:", event.cron);
+    scheduled: async (controller, env, ctx) => {
+        console.log("[Cron] Scheduled event triggered at:", new Date(controller.scheduledTime).toISOString());
+        console.log("[Cron] Cron expression:", controller.cron);
 
         // Use waitUntil to ensure the cron job completes even after the handler returns
         ctx.waitUntil(
@@ -396,8 +383,3 @@ export default {
         );
     },
 } satisfies ExportedHandler<CloudflareBindings>;
-
-type ExportedHandler<Env = unknown> = {
-    fetch: typeof app.fetch;
-    scheduled: ExportedHandlerScheduledHandler<Env>;
-};
