@@ -264,22 +264,34 @@ export const neodbOAuthPlugin = {
     before: [
       {
         matcher: (context) => {
-          return context.path === "/sign-out";
+          const isMatch = context.path === "/sign-out";
+          console.log("[NeoDB Plugin] Hook matcher called - path:", context.path, "matches:", isMatch);
+          return isMatch;
         },
         handler: createAuthMiddleware(async (ctx) => {
+          console.log("[NeoDB Plugin] Sign-out hook handler triggered");
+
           // Get the user session before sign-out deletes it
           const session = ctx.context.session;
+          console.log("[NeoDB Plugin] Session info:", {
+            hasSession: !!session,
+            userId: session?.user?.id
+          });
+
           if (!session?.user?.id) {
+            console.log("[NeoDB Plugin] No session or user ID, skipping");
             return;
           }
 
           const adapter = ctx.context.adapter;
           if (!adapter) {
+            console.log("[NeoDB Plugin] No adapter available, skipping");
             return;
           }
 
           try {
             // Find all NeoDB accounts for this user
+            console.log("[NeoDB Plugin] Looking for NeoDB accounts for user:", session.user.id);
             const accounts = await adapter.findMany<{
               id: string;
               userId: string;
@@ -295,13 +307,24 @@ export const neodbOAuthPlugin = {
               ],
             });
 
+            console.log("[NeoDB Plugin] Found accounts:", accounts?.length || 0);
+
             if (!accounts || accounts.length === 0) {
+              console.log("[NeoDB Plugin] No NeoDB accounts found for user");
               return;
             }
 
             // Process each NeoDB account
             for (const account of accounts) {
+              console.log("[NeoDB Plugin] Processing account:", {
+                id: account.id,
+                accountId: account.accountId,
+                hasAccessToken: !!account.accessToken,
+                isRedacted: account.accessToken?.startsWith("ACCESS_TOKEN_REDACTED_AT_")
+              });
+
               if (!account.accessToken || account.accessToken.startsWith("ACCESS_TOKEN_REDACTED_AT_")) {
+                console.log("[NeoDB Plugin] Skipping account - no token or already redacted");
                 continue;
               }
 
@@ -317,31 +340,40 @@ export const neodbOAuthPlugin = {
                   if (parts.length >= 2) {
                     instanceOrigin = `https://${parts[parts.length - 1]}`;
                   } else {
+                    console.log("[NeoDB Plugin] Invalid accountId format (not enough @ parts):", account.accountId);
                     continue;
                   }
                 } else {
+                  console.log("[NeoDB Plugin] Invalid accountId format (no @ or http):", account.accountId);
                   continue;
                 }
-              } catch {
+                console.log("[NeoDB Plugin] Extracted instance origin:", instanceOrigin);
+              } catch (e) {
+                console.error("[NeoDB Plugin] Failed to parse accountId:", account.accountId, e);
                 continue;
               }
 
               // Get the NeoDB client for this instance
               const client = await getClient(adapter, instanceOrigin);
               if (!client) {
+                console.log("[NeoDB Plugin] No client found for instance:", instanceOrigin);
                 continue;
               }
+              console.log("[NeoDB Plugin] Found client for instance:", instanceOrigin);
 
               // Revoke the token from NeoDB
               try {
+                console.log("[NeoDB Plugin] Attempting to revoke token at:", instanceOrigin);
                 await revokeToken(instanceOrigin, client, account.accessToken);
+                console.log("[NeoDB Plugin] Successfully revoked token");
               } catch (e) {
-                console.error("Failed to revoke NeoDB token:", e);
+                console.error("[NeoDB Plugin] Failed to revoke NeoDB token:", e);
                 // Continue even if revocation fails
               }
 
               // Update the access token in the database (in account table)
               const timestamp = new Date().toISOString();
+              console.log("[NeoDB Plugin] Updating access token to redacted for account:", account.id);
               await adapter.update({
                 model: "account",
                 where: [{ field: "id", value: account.id }],
@@ -349,12 +381,14 @@ export const neodbOAuthPlugin = {
                   accessToken: `ACCESS_TOKEN_REDACTED_AT_${timestamp}`,
                 },
               });
+              console.log("[NeoDB Plugin] Successfully updated access token to redacted");
             }
           } catch (error) {
-            console.error("Error in NeoDB sign-out hook:", error);
+            console.error("[NeoDB Plugin] Error in NeoDB sign-out hook:", error);
             // Don't throw - let sign-out proceed even if token revocation fails
           }
 
+          console.log("[NeoDB Plugin] Sign-out hook completed");
           // Return to continue with normal sign-out flow
           return;
         }),
