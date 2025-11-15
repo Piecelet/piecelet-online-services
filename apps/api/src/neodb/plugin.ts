@@ -37,11 +37,6 @@ export const neodbOAuthPlugin = {
           defaultValue: () => false,
           returned: true,
         },
-        accessTokenRedactedAt: {
-          type: "date",
-          required: false,
-          returned: true,
-        },
       },
     },
     neodbClient: {
@@ -253,9 +248,8 @@ export const neodbOAuthPlugin = {
             accessToken: tokens.access_token,
             refreshToken: tokens.refresh_token,
             scope: tokens.scope,
-            // Reset redacted flags when user logs in with new token
+            // Reset redacted flag when user logs in with new token
             isAccessTokenRedacted: false,
-            accessTokenRedactedAt: null,
           } as any,
           callbackURL: parsed.callbackURL || "/",
           overrideUserInfo: false,
@@ -306,7 +300,6 @@ export const neodbOAuthPlugin = {
               accessToken: string | null;
               refreshToken: string | null;
               isAccessTokenRedacted: boolean | null;
-              accessTokenRedactedAt: Date | null;
             }>({
               model: "account",
               where: [
@@ -368,7 +361,6 @@ export const neodbOAuthPlugin = {
                 update: {
                   accessToken: null,
                   isAccessTokenRedacted: true,
-                  accessTokenRedactedAt: new Date(),
                 },
               });
             }
