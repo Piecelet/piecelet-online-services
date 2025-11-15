@@ -1,6 +1,5 @@
 <script lang="ts">
   import '../app.css';
-  import favicon from '$lib/assets/favicon.svg';
   import GithubIcon from '$lib/icons/github.svg?component';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
   import { t } from '$lib/i18n';
@@ -10,7 +9,6 @@
 </script>
 
 <svelte:head>
-  <link rel="icon" href={favicon} />
 </svelte:head>
 
 <header class="sticky top-0 z-20 border-b border-[var(--border)]/80 bg-[var(--surface)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--surface)/0.6]">
