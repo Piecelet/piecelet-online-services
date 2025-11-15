@@ -9,6 +9,7 @@
 // Production origins - only these domains are allowed in production
 export const PRODUCTION_ORIGINS = [
     "https://account.piecelet.app",
+    "https://connect.piecelet.app",
     "https://online.piecelet.app",
     "https://services.piecelet.app",
     "https://www.piecelet.app",
@@ -17,7 +18,7 @@ export const PRODUCTION_ORIGINS = [
 
 // Base URLs for the API
 export const DEV_BASE_URL = "http://localhost:8787";
-export const PROD_BASE_URL = "https://account.piecelet.app";
+export const PROD_BASE_URL = "https://connect.piecelet.app";
 
 /**
  * Check if we're in development mode
