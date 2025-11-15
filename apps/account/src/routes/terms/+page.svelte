@@ -313,13 +313,6 @@
     </section>
 
     <section class="mt-8 mb-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
-      <h2 class="text-lg font-semibold text-[var(--text)]">15. Revision history</h2>
-      <ul class="ml-5 list-disc space-y-2">
-        <li>15 November 2025: Initial publication of the Piecelet Connect‑specific Terms of Service.</li>
-      </ul>
-    </section>
-
-    <section class="mt-8 mb-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
       <h2 class="text-lg font-semibold text-[var(--text)]">14. Contact</h2>
       <p>
         If you have any questions, concerns, or feedback about these Terms or the Service, you can contact us via the
@@ -332,6 +325,13 @@
         own instance of Piecelet Connect on infrastructure you control, or opt not to use Piecelet Connect if you are
         uncomfortable with these Terms.
       </p>
+    </section>
+
+    <section class="mt-8 mb-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
+      <h2 class="text-lg font-semibold text-[var(--text)]">15. Revision history</h2>
+      <ul class="ml-5 list-disc space-y-2">
+        <li>15 November 2025: Initial publication of the Piecelet Connect‑specific Terms of Service.</li>
+      </ul>
     </section>
   </div>
 </div>
