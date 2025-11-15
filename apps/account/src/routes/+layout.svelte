@@ -34,8 +34,8 @@
     <div class="flex items-center gap-3">
       <span>© {new Date().getFullYear()} Piecelet</span>
       {#if $page.url.pathname !== '/'}
-        <a href="/privacy" class="text-[var(--muted)] hover:text-[var(--muted)]">Privacy Policy</a>
-        <a href="/terms" class="text-[var(--muted)] hover:text-[var(--muted)]">Terms of Service</a>
+        <a href="/terms" class="footer-link">Terms of Service</a>
+        <a href="/privacy" class="footer-link">Privacy Policy</a>
       {/if}
     </div>
 
@@ -53,3 +53,17 @@
     </div>
   </div>
 </footer>
+
+<style>
+  .footer-link {
+    color: var(--muted) !important;
+    text-decoration: none;
+  }
+
+  .footer-link:hover,
+  .footer-link:focus-visible {
+    color: var(--muted) !important;
+    text-decoration: underline;
+    outline: none;
+  }
+</style>
