@@ -1,7 +1,7 @@
-export interface CloudflareBindings {
-    ACCOUNT_DATABASE: D1Database;
-    ACCOUNT_KV: KVNamespace;
-}
+// export interface CloudflareBindings {
+//     ACCOUNT_DATABASE: D1Database;
+//     ACCOUNT_KV: KVNamespace;
+// }
 
 declare global {
     namespace NodeJS {
