@@ -91,6 +91,14 @@
         3.4 If you become aware of any unauthorized use of your account or any security breach, you should contact us
         promptly using the contact channels described below so we can take reasonable steps to assist you.
       </p>
+      <p>
+        3.5 The Service is not offered to, and you may not use the Service if you are located in, ordinarily resident
+        in, or organized under the laws of jurisdictions that do not have effective legal jurisdiction over the
+        Service, including the People’s Republic of China, the Hong Kong Special Administrative Region, and the Macao
+        Special Administrative Region. By using the Service, you represent and warrant that you do not fall within
+        these categories and that you will not use technical or contractual arrangements to circumvent this
+        restriction.
+      </p>
     </section>
 
     <section class="mt-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
@@ -302,6 +310,13 @@
         such as highlighting changes in the interface or repository. Your continued use of the Service after the
         updated Terms become effective constitutes your acceptance of those changes.
       </p>
+    </section>
+
+    <section class="mt-8 mb-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
+      <h2 class="text-lg font-semibold text-[var(--text)]">15. Revision history</h2>
+      <ul class="ml-5 list-disc space-y-2">
+        <li>15 November 2025: Initial publication of the Piecelet Connect‑specific Terms of Service.</li>
+      </ul>
     </section>
 
     <section class="mt-8 mb-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">

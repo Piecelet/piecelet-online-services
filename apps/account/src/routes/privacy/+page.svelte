@@ -54,6 +54,15 @@
         between yourself and that instance. Piecelet Connect acts as a technical intermediary that uses the access
         tokens you grant to perform limited actions on your behalf.
       </p>
+      <p>
+        2.4 The Service is not intended to be offered to, and should not be used by, individuals or entities that are
+        located in, ordinarily resident in, or organized under the laws of jurisdictions that do not have effective
+        legal jurisdiction over the Service, including the People’s Republic of China, the Hong Kong Special
+        Administrative Region, and the Macao Special Administrative Region. If you nonetheless access Piecelet Connect
+        from such jurisdictions, you do so at your own risk and you acknowledge that the protections and rights
+        described in this Policy are interpreted primarily under the laws identified in the “Governing law and
+        jurisdiction” section of the Terms of Service.
+      </p>
     </section>
 
     <section class="mt-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
@@ -363,6 +372,13 @@
         own instance of Piecelet Connect on infrastructure you control, or opt not to use Piecelet Connect if you are
         uncomfortable with the data practices described here.
       </p>
+    </section>
+
+    <section class="mt-8 mb-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
+      <h2 class="text-lg font-semibold text-[var(--text)]">14. Revision history</h2>
+      <ul class="ml-5 list-disc space-y-2">
+        <li>15 November 2025: Initial publication of the Piecelet Connect‑specific Privacy Policy.</li>
+      </ul>
     </section>
   </div>
 </div>
