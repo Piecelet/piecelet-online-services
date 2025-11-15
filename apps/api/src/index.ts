@@ -43,7 +43,7 @@ app.get("/", async c => {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard - Better Auth Cloudflare (Hono)</title>
+    <title>Internal Dashboard - Piecelet Connect</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
         .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin: 20px 0; }
@@ -69,14 +69,14 @@ app.get("/", async c => {
 <body>
     <div class="card">
         <div class="header">
-            <h1 class="title">Dashboard - Hono</h1>
-            <p class="subtitle">Powered by better-auth-cloudflare</p>
+            <h1 class="title">Internal Dashboard</h1>
+            <p class="subtitle">Piecelet Connect (piecelet-online-services)</p>
         </div>
         
         <div id="status">Loading...</div>
         
         <div id="not-logged-in" style="display:none;">
-            <button onclick="loginAnonymously()" class="primary-btn">Login Anonymously</button>
+            <!-- <button onclick="loginAnonymously()" class="primary-btn">Login Anonymously</button> -->
 
             <div class="neodb-section">
                 <h3 style="margin: 0 0 16px 0; font-size: 1.125rem; font-weight: 600;">Sign in with NeoDB</h3>
@@ -114,7 +114,7 @@ app.get("/", async c => {
         Powered by 
         <a href="https://github.com/zpg6/better-auth-cloudflare" target="_blank" rel="noopener noreferrer">better-auth-cloudflare</a>
         | 
-        <a href="https://www.npmjs.com/package/better-auth-cloudflare" target="_blank" rel="noopener noreferrer">npm package</a>
+        <a href="https://github.com/Piecelet/piecelet-online-services" target="_blank" rel="noopener noreferrer">Piecelet Connect (piecelet-online-services)</a>
     </footer>
 
     <script>
