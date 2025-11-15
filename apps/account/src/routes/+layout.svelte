@@ -37,9 +37,9 @@
         target="_blank"
         rel="noreferrer"
         aria-label="View Piecelet online services on GitHub"
-        class="text-[var(--muted)] hover:text-[var(--text)]"
+        class="hover:text-[var(--text)]"
       >
-        <GithubIcon class="h-4 w-4" aria-hidden="true" />
+        <GithubIcon class="h-4 w-4 text-[var(--muted)]" aria-hidden="true" />
       </a>
       <LanguageSwitcher />
     </div>
