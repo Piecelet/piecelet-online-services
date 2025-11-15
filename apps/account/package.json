@@ -16,6 +16,7 @@
 		"cf-typegen": "wrangler types ./src/worker-configuration.d.ts"
 	},
 	"devDependencies": {
+		"@poppanator/sveltekit-svg": "^6.0.0",
 		"@eslint/compat": "^1.4.0",
 		"@eslint/js": "^9.36.0",
 		"@inlang/paraglide-js": "^2.4.0",
