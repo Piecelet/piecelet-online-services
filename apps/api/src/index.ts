@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { createAuth } from "./auth";
 import type { CloudflareBindings } from "./env";
 import { getAllowedOrigin } from "./config/origins";
+import { revokeStaleTokens } from "./cron/revoke-stale-tokens";
 
 type Variables = {
     auth: ReturnType<typeof createAuth>;
@@ -361,4 +362,41 @@ app.get("/health", c => {
     return c.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Export the Hono app as the default fetch handler
 export default app;
+
+// Export scheduled handler for Cloudflare Workers Cron Triggers
+export const scheduled: ExportedHandlerScheduledHandler<CloudflareBindings> = async (
+    event,
+    env,
+    ctx
+) => {
+    console.log("[Cron] Scheduled event triggered at:", new Date(event.scheduledTime).toISOString());
+    console.log("[Cron] Cron expression:", event.cron);
+
+    // Use waitUntil to ensure the cron job completes even after the handler returns
+    ctx.waitUntil(
+        (async () => {
+            try {
+                await revokeStaleTokens(env);
+                console.log("[Cron] Scheduled job completed successfully");
+            } catch (error) {
+                console.error("[Cron] Scheduled job failed:", error);
+                throw error;
+            }
+        })()
+    );
+};
+
+// Type helper for the scheduled handler
+type ExportedHandlerScheduledHandler<Env = unknown> = (
+    event: {
+        scheduledTime: number;
+        cron: string;
+    },
+    env: Env,
+    ctx: {
+        waitUntil: (promise: Promise<any>) => void;
+        passThroughOnException: () => void;
+    }
+) => void | Promise<void>;
