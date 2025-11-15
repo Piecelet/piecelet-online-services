@@ -68,6 +68,9 @@ export const accounts = sqliteTable("accounts", {
     updatedAt: integer("updated_at", { mode: "timestamp_ms" })
         .$onUpdate(() => /* @__PURE__ */ new Date())
         .notNull(),
+    isAccessTokenRedacted: integer("is_access_token_redacted", {
+        mode: "boolean",
+    }).$defaultFn(() => false),
 });
 
 export const verifications = sqliteTable("verifications", {

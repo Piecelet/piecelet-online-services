@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `is_access_token_redacted` integer;
