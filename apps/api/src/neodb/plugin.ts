@@ -279,7 +279,7 @@ export const neodbOAuthPlugin = {
 
           // Get session token from cookie
           const sessionCookieName = ctx.context.authCookies.sessionToken.name;
-          const sessionToken = ctx.getCookie(sessionCookieName);
+          let sessionToken = ctx.getCookie(sessionCookieName);
 
           console.log("[NeoDB Plugin] Session cookie name:", sessionCookieName);
           console.log("[NeoDB Plugin] Session token from cookie:", sessionToken ? "exists" : "missing");
@@ -287,6 +287,14 @@ export const neodbOAuthPlugin = {
           if (!sessionToken) {
             console.log("[NeoDB Plugin] No session token found in cookie, skipping");
             return;
+          }
+
+          // Extract the base token (before the signature part)
+          // Cookie format: "token.signature", DB stores only "token"
+          if (sessionToken.includes(".")) {
+            const parts = sessionToken.split(".");
+            sessionToken = parts[0] || sessionToken;
+            console.log("[NeoDB Plugin] Extracted base token (before signature)");
           }
 
           // Get session from database using the token
