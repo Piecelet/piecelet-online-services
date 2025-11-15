@@ -1,6 +1,6 @@
 import type { CloudflareBindings } from "../env";
 import { drizzle } from "drizzle-orm/d1";
-import { schema, account as accountTable, neodbClient as neodbClientTable } from "../db";
+import { schema, accounts as accountTable, neodbClients as neodbClientTable } from "../db";
 import { and, eq, lt, or, isNull } from "drizzle-orm";
 import { getClient } from "../neodb/store";
 import { revokeToken } from "../neodb/mastodon";
