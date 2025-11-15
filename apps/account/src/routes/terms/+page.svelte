@@ -51,15 +51,15 @@
     <section class="mt-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
       <h2 class="text-lg font-semibold text-[var(--text)]">2. Description of the Service</h2>
       <p>
-        2.1 The Service is designed to help you connect one or more NeoDB instances to clients such as the Piecelet
-        app. In particular, Piecelet Connect:
+        2.1 The Service is designed to help you establish a secure connection between one or more NeoDB instances and
+        the Piecelet Connect backend operated on your behalf. In particular, Piecelet Connect:
       </p>
       <ul class="ml-5 list-disc space-y-2">
         <li>lets you select or enter a NeoDB instance domain;</li>
         <li>initiates an OAuth / Mastodon-compatible authorization flow on that instance;</li>
         <li>
-          receives and stores access tokens returned by the instance so that it can act on your behalf to
-          call that instance’s APIs for Piecelet-related features; and
+          receives and stores access tokens returned by the instance so that it can, where authorized, call that
+          instance’s APIs on your behalf; and
         </li>
         <li>manages those tokens, including logout, revocation, and periodic cleanup of stale tokens.</li>
       </ul>
@@ -275,11 +275,17 @@
       <h2 class="text-lg font-semibold text-[var(--text)]">12. Governing law and jurisdiction</h2>
       <p>
         12.1 These Terms and any dispute arising out of or relating to the Service shall be governed by and construed
-        in accordance with the laws of the State of Delaware, United States, without regard to its conflict of law
-        principles.
+        in accordance with the laws of the State of Delaware, United States, and, where applicable, the federal laws
+        of the United States, without regard to conflict-of-laws principles.
       </p>
       <p>
-        12.2 Any legal action or proceeding arising under or relating to these Terms or the Service shall be brought
+        12.2 References in these Terms and in the Piecelet Connect Privacy Policy to “applicable law”, “legal
+        obligations”, or similar concepts are intended to refer primarily to the laws and binding orders of competent
+        authorities in the United States (including the State of Delaware), Canada, and member states of the European
+        Union, and not to the laws of other countries that do not have effective jurisdiction over the Service.
+      </p>
+      <p>
+        12.3 Any legal action or proceeding arising under or relating to these Terms or the Service shall be brought
         exclusively in a court of competent jurisdiction located in Delaware, United States, and you consent to the
         personal jurisdiction and venue of such courts.
       </p>
@@ -305,7 +311,9 @@
         contact information listed on the Piecelet website or by opening an issue in the GitHub repository
         <a href="https://github.com/Piecelet/piecelet-online-services" target="_blank" rel="noreferrer">
           Piecelet Connect (piecelet-online-services)
-        </a>.
+        </a>. Because the Service is fully open source, you may also choose to review the source code, self-host your
+        own instance of Piecelet Connect on infrastructure you control, or opt not to use Piecelet Connect if you are
+        uncomfortable with these Terms.
       </p>
     </section>
   </div>

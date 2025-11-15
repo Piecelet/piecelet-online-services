@@ -123,11 +123,14 @@
       <p>We use the data described above for the following purposes:</p>
       <ul class="ml-5 list-disc space-y-2">
         <li>to authenticate you and maintain secure sessions for Piecelet Connect;</li>
-        <li>to connect your NeoDB accounts to clients such as the Piecelet app;</li>
-        <li>to perform requests to NeoDB instances on your behalf, within the scope you authorized;</li>
+        <li>to initiate and complete OAuth flows with the NeoDB instances you choose, within the scope you authorize;</li>
+        <li>to perform requests to NeoDB instances on your behalf, within the scope you authorize;</li>
         <li>to protect the Service against abuse, spam, and malicious activity;</li>
         <li>to monitor performance, debug issues, and improve reliability;</li>
-        <li>to comply with legal obligations and respond to lawful requests where required.</li>
+        <li>
+          to comply with applicable legal obligations and honor binding orders issued by courts or authorities that
+          have jurisdiction over the Service, as further described in Sections 8, 9 and 12 of this Policy.
+        </li>
       </ul>
       <p>
         We do not sell your personal data and do not use Piecelet Connect data for targeted advertising.
@@ -175,7 +178,8 @@
       </ul>
       <p>
         6.3 Account and session records (including geolocation metadata) may be retained for a reasonable period after
-        tokens are revoked or redacted, for purposes such as security auditing, abuse prevention, and legal compliance.
+        tokens are revoked or redacted, for purposes such as security auditing, abuse prevention, and compliance with
+        the laws that apply to the Service.
       </p>
       <p>
         6.4 Where feasible and legally permissible, we may further anonymize or aggregate data for statistical and
@@ -201,7 +205,10 @@
         </li>
         <li>
           <span class="font-semibold text-[var(--text)]">Legal obligations:</span>
-          processing required to comply with applicable laws or respond to lawful requests.
+          processing required to comply with the laws and binding orders of competent authorities in the jurisdictions
+          that govern the Service, primarily the United States (including the State of Delaware), Canada, and member
+          states of the European Union, and not the laws of other countries that do not have jurisdiction over the
+          Service.
         </li>
         <li>
           <span class="font-semibold text-[var(--text)]">Consent:</span>
@@ -229,9 +236,14 @@
         </li>
         <li>
           <span class="font-semibold text-[var(--text)]">Legal and safety:</span>
-          We may disclose information if required by law, court order, or governmental request, or when we believe in
-          good faith that disclosure is reasonably necessary to protect our rights, your safety, or the safety of
-          others.
+          We may disclose information where we are legally compelled to do so by a court order or governmental request
+          that is valid and enforceable in a jurisdiction that governs the Service (primarily the United States,
+          Canada, and the European Union), or where we reasonably determine that disclosure is necessary to protect
+          our rights, your safety, or the safety of others. As a matter of policy, we do not voluntarily honor or
+          respond to legal demands that originate solely from jurisdictions that do not have effective legal
+          authority over the Service, including but not limited to the People’s Republic of China, the Hong Kong
+          Special Administrative Region, and the Macao Special Administrative Region, except to the extent we are
+          independently required to do so under the laws of a governing jurisdiction.
         </li>
         <li>
           <span class="font-semibold text-[var(--text)]">Aggregated or anonymized data:</span>
@@ -241,34 +253,76 @@
     </section>
 
     <section class="mt-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
-      <h2 class="text-lg font-semibold text-[var(--text)]">9. International data transfers</h2>
+      <h2 class="text-lg font-semibold text-[var(--text)]">
+        9. Infrastructure, storage, and international data transfers
+      </h2>
       <p>
-        Piecelet Connect may be hosted on infrastructure located in multiple countries. By using the Service, you
-        understand that your data may be transferred to and processed in countries that may have different data
-        protection laws than your country of residence.
+        Piecelet Connect runs on Cloudflare’s edge network and data storage services, including Cloudflare Workers,
+        D1, and KV. Data may be processed in and routed through multiple Cloudflare data centers around the world,
+        and may not be stored in your country of residence. Cloudflare describes its security and privacy practices
+        in its own documentation and privacy policy, including:
+        <a href="https://developers.cloudflare.com/d1/reference/data-security/" target="_blank" rel="noreferrer">
+          D1 data security
+        </a>,
+        <a href="https://developers.cloudflare.com/d1/configuration/data-location/" target="_blank" rel="noreferrer">
+          D1 data location
+        </a>, and
+        <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noreferrer">
+          Cloudflare Privacy Policy
+        </a>.
       </p>
       <p>
-        Where required, we take reasonable steps to ensure that such transfers comply with applicable data protection
-        laws, for example by using providers that implement appropriate safeguards.
+        By using the Service, you understand and agree that your data will be processed on Cloudflare infrastructure
+        and may be transferred to, stored in, or accessed from countries whose data protection laws may differ from
+        those in your home jurisdiction. We configure our D1 databases with Cloudflare’s “jurisdiction: none” setting,
+        which means data is distributed across Cloudflare’s global platform rather than pinned to a single national
+        data‑residency region. We do not intentionally operate Piecelet Connect from infrastructure that is subject to
+        the domestic data‑access regimes of the People’s Republic of China, the Hong Kong Special Administrative
+        Region, or the Macao Special Administrative Region, although network traffic may transit multiple countries as
+        part of normal internet routing. Where required, we take reasonable steps to ensure that such transfers comply
+        with applicable data protection laws in the jurisdictions that govern the Service.
       </p>
     </section>
 
     <section class="mt-8 space-y-4 text-[13px] leading-relaxed text-[var(--muted)]">
-      <h2 class="text-lg font-semibold text-[var(--text)]">10. Your rights and choices</h2>
+      <h2 class="text-lg font-semibold text-[var(--text)]">
+        10. Your rights (GDPR, CCPA, CalOPPA and similar laws)
+      </h2>
       <p>
-        Depending on your location and applicable law, you may have some or all of the following rights regarding your
-        personal data:
+        Depending on your location and the laws that apply to you, you may have certain rights in relation to your
+        personal data. In particular:
       </p>
       <ul class="ml-5 list-disc space-y-2">
-        <li>the right to access the personal data we hold about you;</li>
-        <li>the right to correct inaccurate or incomplete personal data;</li>
-        <li>the right to request deletion of your personal data, subject to legal requirements;</li>
-        <li>the right to object to or restrict certain types of processing;</li>
-        <li>the right to withdraw consent where processing is based on consent; and</li>
-        <li>the right to lodge a complaint with a supervisory authority in your jurisdiction.</li>
+        <li>
+          <span class="font-semibold text-[var(--text)]">Rights under the GDPR (EU/EEA and UK equivalents):</span>
+          If you are located in the European Union, the European Economic Area, or a jurisdiction that has adopted
+          equivalent protections, you may have the right to access, correct, or delete your personal data; to
+          restrict or object to certain processing; to receive a copy of your data in a portable format; and to
+          lodge a complaint with a supervisory authority.
+        </li>
+        <li>
+          <span class="font-semibold text-[var(--text)]">Rights under the CCPA/CPRA (California):</span>
+          If you are a California resident, you may have the right to know what categories of personal information we
+          collect, use, and disclose; to request access to specific pieces of personal information; to request
+          deletion of personal information, subject to legal exceptions; to correct inaccurate personal information;
+          and to be free from discrimination for exercising your rights. We do not “sell” personal information as
+          that term is defined under California law.
+        </li>
+        <li>
+          <span class="font-semibold text-[var(--text)]">Rights under CalOPPA and similar laws:</span>
+          We aim to honor transparency and choice obligations under California’s Online Privacy Protection Act
+          (CalOPPA) and similar state‑level privacy laws in North America, including providing clear notice of our
+          practices and honoring browser‑level or platform‑level privacy controls where technically feasible.
+        </li>
       </ul>
+      <p class="mt-2">
+        Even if you are not covered by the specific laws above, you may still contact us to request access, correction,
+        or deletion of personal data held by the Service, and we will consider your request in line with the
+        protections described in this Policy and the laws that govern the Service (primarily the United States,
+        Canada, and the European Union).
+      </p>
       <p>
-        You can exercise many of these rights directly by revoking access on NeoDB instances, signing out of Piecelet
+        You can exercise many of your choices directly by revoking access on NeoDB instances, signing out of Piecelet
         Connect, or contacting us as described below. We may need to verify your identity before fulfilling certain
         requests.
       </p>
@@ -305,9 +359,10 @@
         issue in the GitHub repository
         <a href="https://github.com/Piecelet/piecelet-online-services" target="_blank" rel="noreferrer">
           Piecelet Connect (piecelet-online-services)
-        </a>.
+        </a>. Because the Service is fully open source, you may also choose to review the source code, self‑host your
+        own instance of Piecelet Connect on infrastructure you control, or opt not to use Piecelet Connect if you are
+        uncomfortable with the data practices described here.
       </p>
     </section>
   </div>
 </div>
-
