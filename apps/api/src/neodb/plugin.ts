@@ -266,6 +266,25 @@ export const neodbOAuthPlugin = {
         const cookieCtx = ctx as unknown as Parameters<typeof setSessionCookie>[0];
         await setSessionCookie(cookieCtx, { session: data.session, user: data.user });
 
+        // Ensure isAccessTokenRedacted is reset to false on successful login
+        // This handles both new accounts and re-login scenarios
+        try {
+          await adapter.update({
+            model: "account",
+            where: [
+              { field: "userId", value: data.user.id },
+              { field: "providerId", value: "neodb" },
+              { field: "accountId", value: String(accountId) },
+            ],
+            update: {
+              isAccessTokenRedacted: false,
+            },
+          });
+        } catch (e) {
+          console.error("[NeoDB Plugin] Failed to reset isAccessTokenRedacted flag:", e);
+          // Don't throw - login was successful, this is just cleanup
+        }
+
         const inferredCallback = stateInfo.callbackUrl || parsed.callbackURL || "/";
         const isRegister = Boolean((result as { isRegister?: boolean }).isRegister);
         const to = isRegister ? parsed.newUserURL || inferredCallback : inferredCallback;
@@ -355,11 +374,12 @@ export const neodbOAuthPlugin = {
               }
 
               // Update the access token in the database (in account table)
+              const timestamp = new Date().toISOString();
               await adapter.update({
                 model: "account",
                 where: [{ field: "id", value: account.id }],
                 update: {
-                  accessToken: null,
+                  accessToken: `ACCESS_TOKEN_REDACTED_AT_${timestamp}`,
                   isAccessTokenRedacted: true,
                 },
               });
