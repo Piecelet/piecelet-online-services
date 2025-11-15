@@ -4,6 +4,7 @@
   import GithubIcon from '$lib/icons/github.svg?component';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
   import { t } from '$lib/i18n';
+  import { page } from '$app/stores';
 
   let { children } = $props();
 </script>
@@ -29,8 +30,16 @@
 </main>
 
 <footer class="fixed bottom-0 left-0 right-0 z-20 border-t border-[var(--border)]/80 bg-[var(--surface)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--surface)/0.6]">
-    <div class="mx-auto flex h-12 w-full max-w-5xl items-center justify-between px-4 sm:px-6 text-[11px] text-[var(--muted)]">
-      <span>© {new Date().getFullYear()} Piecelet</span>
+  <div class="mx-auto flex h-12 w-full max-w-5xl items-center justify-between px-4 sm:px-6 text-[11px] text-[var(--muted)]">
+    <span>© {new Date().getFullYear()} Piecelet</span>
+
+    {#if $page.url.pathname !== '/'}
+      <nav class="flex items-center gap-3">
+        <a href="/privacy" class="hover:text-[var(--text)]">Privacy Policy</a>
+        <a href="/terms" class="hover:text-[var(--text)]">Terms of Service</a>
+      </nav>
+    {/if}
+
     <div class="flex items-center gap-3">
       <a
         href="https://github.com/Piecelet/piecelet-online-services"

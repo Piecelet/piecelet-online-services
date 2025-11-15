@@ -190,8 +190,6 @@
                 {t.legal_prefix()} 
                 <a
                     href="/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
                     class="hover:text-[var(--text)]"
                 >
                     {t.legal_terms()}
@@ -199,8 +197,6 @@
                 {` ${t.connector_and()} `}
                 <a
                     href="/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
                     class="hover:text-[var(--text)]"
                 >
                     {t.legal_privacy()}
