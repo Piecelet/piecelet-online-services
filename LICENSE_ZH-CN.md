@@ -4,7 +4,7 @@
 本中文版本仅为方便理解之用，如与英文版存在任何不一致或歧义，**以英文版 `LICENSE.md` 为准**。
 
 项目仓库地址：  
-`https://github.com/Piecelet/piecelet-connect`
+`https://github.com/Piecelet/piecelet-online-services`
 
 除非单个文件中另有声明，本项目的一切权利均由 [lcandy2](https://github.com/lcandy2)（[Piecelet](https://github.com/Piecelet) 的创建人）保留。
 
@@ -89,7 +89,7 @@
 
 在本条款中，“**归档条件（Archived Condition）**” 指：
 
-- GitHub 上位于 `https://github.com/Piecelet/piecelet-connect` 的仓库被仓库所有者标记为 “archived”（已归档）。
+- GitHub 上位于 `https://github.com/Piecelet/piecelet-online-services` 的仓库被仓库所有者标记为 “archived”（已归档）。
 
 当且仅当满足上述归档条件时：
 

@@ -1,7 +1,7 @@
 # Piecelet Connect License
 
 This file governs the use of the source code in the “Piecelet Connect” project hosted at:  
-`https://github.com/Piecelet/piecelet-connect`
+`https://github.com/Piecelet/piecelet-online-services`
 
 Unless explicitly stated otherwise in a specific file, all rights to this project are reserved by [lcandy2](https://github.com/lcandy2), the creator of [Piecelet](https://github.com/Piecelet).
 
@@ -81,7 +81,7 @@ By submitting any contribution (including code, documentation, or other content)
 
 For the purposes of this section, the **“Archived Condition”** means:
 
-- The GitHub repository located at `https://github.com/Piecelet/piecelet-connect` is marked as “archived” by the repository owner.
+- The GitHub repository located at `https://github.com/Piecelet/piecelet-online-services` is marked as “archived” by the repository owner.
 
 When, and only when, the Archived Condition is met:
 
