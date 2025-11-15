@@ -364,8 +364,9 @@
       <h2 class="text-lg font-semibold text-[var(--text)]">13. Contact us</h2>
       <p>
         If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices for
-        Piecelet Connect, please contact us using the contact details listed on the Piecelet website or by opening an
-        issue in the GitHub repository
+        Piecelet Connect, please contact us using the contact details listed on the Piecelet website, by email at
+        <a href="mailto:contact@connect.piecelet.app">contact@connect.piecelet.app</a>, or by opening an issue in the
+        GitHub repository
         <a href="https://github.com/Piecelet/piecelet-online-services" target="_blank" rel="noreferrer">
           Piecelet Connect (piecelet-online-services)
         </a>. Because the Service is fully open source, you may also choose to review the source code, self‑host your
