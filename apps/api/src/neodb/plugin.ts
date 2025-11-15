@@ -261,13 +261,13 @@ export const neodbOAuthPlugin = {
     ),
   },
   hooks: {
-    after: [
+    before: [
       {
         matcher: (context) => {
           return context.path === "/sign-out";
         },
         handler: createAuthMiddleware(async (ctx) => {
-          // Get the user session before it's deleted
+          // Get the user session before sign-out deletes it
           const session = ctx.context.session;
           if (!session?.user?.id) {
             return;
@@ -340,7 +340,7 @@ export const neodbOAuthPlugin = {
                 // Continue even if revocation fails
               }
 
-              // Update the access token in the database
+              // Update the access token in the database (in account table)
               const timestamp = new Date().toISOString();
               await adapter.update({
                 model: "account",
@@ -354,6 +354,9 @@ export const neodbOAuthPlugin = {
             console.error("Error in NeoDB sign-out hook:", error);
             // Don't throw - let sign-out proceed even if token revocation fails
           }
+
+          // Return to continue with normal sign-out flow
+          return;
         }),
       },
     ],
