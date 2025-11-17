@@ -357,6 +357,56 @@ app.get("/protected", async c => {
     }
 });
 
+// Get JWT and set it in cookie for cross-service authentication
+app.get("/api/auth/jwt-cookie", async c => {
+    const auth = c.get("auth");
+
+    try {
+        // Check if user is authenticated
+        const session = await auth.api.getSession({
+            headers: c.req.raw.headers,
+        });
+
+        if (!session?.session || !session?.user) {
+            return c.json({ error: "Unauthorized: Not logged in" }, 401);
+        }
+
+        // Get JWT token from the /token endpoint
+        const tokenResponse = await auth.api.getToken({
+            headers: c.req.raw.headers,
+        });
+
+        if (!tokenResponse?.token) {
+            return c.json({ error: "Failed to generate JWT token" }, 500);
+        }
+
+        // Set JWT in cookie
+        // Cookie settings for cross-domain usage
+        const cookieOptions = [
+            `auth_jwt=${tokenResponse.token}`,
+            'Path=/',
+            'HttpOnly',
+            'SameSite=None',
+            'Secure',
+            'Max-Age=604800', // 7 days
+        ];
+
+        c.header('Set-Cookie', cookieOptions.join('; '));
+
+        return c.json({
+            success: true,
+            message: "JWT token set in cookie",
+            token: tokenResponse.token,
+        });
+    } catch (error) {
+        console.error("Error setting JWT cookie:", error);
+        return c.json(
+            { error: "Failed to set JWT cookie" },
+            500
+        );
+    }
+});
+
 // Simple health check
 app.get("/health", c => {
     return c.json({ status: "ok", timestamp: new Date().toISOString() });

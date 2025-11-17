@@ -1,4 +1,5 @@
 import { createMiddleware } from "hono/factory";
+import { getCookie } from "hono/cookie";
 import { jwtVerify, createRemoteJWKSet } from "jose";
 import type { Context } from "hono";
 
@@ -26,16 +27,24 @@ export interface AuthContext {
 
 /**
  * JWT authentication middleware
- * Verifies JWT token from Authorization header using JWKS from the account service
+ * Verifies JWT token from Authorization header or Cookie using JWKS from the account service
  */
 export const jwtAuth = createMiddleware<{ Variables: AuthContext }>(async (c, next) => {
+    // Try to get token from Authorization header first
     const authHeader = c.req.header("Authorization");
+    let token: string | undefined;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return c.json({ error: "Unauthorized: No token provided" }, 401);
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7); // Remove "Bearer " prefix
+    } else {
+        // Try to get token from cookie
+        // The JWT cookie is set by the account service at /api/auth/jwt-cookie
+        token = getCookie(c, 'auth_jwt');
     }
 
-    const token = authHeader.substring(7); // Remove "Bearer " prefix
+    if (!token) {
+        return c.json({ error: "Unauthorized: No token provided" }, 401);
+    }
 
     try {
         const accountServiceURL = getAccountServiceURL();
