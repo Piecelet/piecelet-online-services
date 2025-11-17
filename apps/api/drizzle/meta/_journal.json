@@ -22,6 +22,13 @@
       "when": 1763182543157,
       "tag": "0002_rainy_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1763402635749,
+      "tag": "0003_fluffy_bedlam",
+      "breakpoints": true
     }
   ]
 }

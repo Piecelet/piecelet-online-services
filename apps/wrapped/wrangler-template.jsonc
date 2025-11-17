@@ -10,7 +10,8 @@
     {
       "binding": "WRAPPED_DB",
       "database_name": "<WRAPPED_DATABASE_NAME>",
-      "database_id": "<WRAPPED_DATABASE_ID>"
+      "database_id": "<WRAPPED_DATABASE_ID>",
+      "migrations_dir": "drizzle"
     }
   ],
   // "vars": {

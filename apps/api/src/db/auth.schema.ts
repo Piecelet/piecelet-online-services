@@ -87,6 +87,13 @@ export const verifications = sqliteTable("verifications", {
         .notNull(),
 });
 
+export const jwkss = sqliteTable("jwkss", {
+    id: text("id").primaryKey(),
+    publicKey: text("public_key").notNull(),
+    privateKey: text("private_key").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
 export const neodbClients = sqliteTable("neodb_clients", {
     id: text("id").primaryKey(),
     instance: text("instance").notNull().unique(),

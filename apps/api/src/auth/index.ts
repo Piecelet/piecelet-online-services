@@ -1,7 +1,7 @@
 import type { D1Database, IncomingRequestCfProperties } from "@cloudflare/workers-types";
 import { betterAuth } from "better-auth";
 import { withCloudflare } from "better-auth-cloudflare";
-import { anonymous } from "better-auth/plugins";
+import { anonymous, jwt } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/d1";
 import { schema } from "../db";
@@ -37,7 +37,7 @@ function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) 
                 emailAndPassword: {
                     enabled: true,
                 },
-                plugins: [username(), neodbOAuthPlugin],
+                plugins: [username(), jwt(), neodbOAuthPlugin],
                 rateLimit: {
                     enabled: true,
                 },
