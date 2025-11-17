@@ -2,10 +2,17 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wrapped",
   "main": "src/index.ts",
-  "compatibility_date": "2025-11-17"
-  // "compatibility_flags": [
-  //   "nodejs_compat"
-  // ],
+  "compatibility_date": "2025-11-17",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "WRAPPED_DB",
+      "database_name": "<WRAPPED_DATABASE_NAME>",
+      "database_id": "<WRAPPED_DATABASE_ID>"
+    }
+  ],
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },
@@ -19,13 +26,6 @@
   //   {
   //     "binding": "MY_BUCKET",
   //     "bucket_name": "my-bucket"
-  //   }
-  // ],
-  // "d1_databases": [
-  //   {
-  //     "binding": "MY_DB",
-  //     "database_name": "my-database",
-  //     "database_id": ""
   //   }
   // ],
   // "ai": {
