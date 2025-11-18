@@ -1,220 +1,327 @@
-# NeoDB API Integration Usage
+# NeoDB API 通用代理使用指南
 
-This document explains how to use the NeoDB API proxy in the wrapped service.
+这是一个**通用代理**，可以转发所有 NeoDB API 请求到用户对应的实例。
 
-## Architecture
+## 🔄 架构流程
 
 ```
-客户端 → [JWT] → apps/wrapped → [JWT] → apps/api → [NeoDB Token] → neodb.social
+客户端
+  ↓ [JWT]
+apps/wrapped (/api/neodb/*)
+  ↓ [JWT]
+apps/api (/api/auth/neodb/api/*)
+  ↓ [从数据库获取 instance + token]
+  ↓ [NeoDB Access Token]
+NeoDB Instance (https://{instance}/api/*)
 ```
 
-**Security Flow:**
-1. User authenticates with apps/api and gets JWT
-2. Client calls apps/wrapped with JWT
-3. apps/wrapped forwards request to apps/api with same JWT
-4. apps/api validates JWT, fetches NeoDB token from database
-5. apps/api calls NeoDB with access token
-6. Response flows back to client
+## 🎯 路径映射
 
-**Key Security Features:**
-- NeoDB access token NEVER exposed to client
-- Token stays in apps/api database
-- JWT used for authentication between services
-- Automatic token revocation on logout
+### apps/wrapped 层
+```
+客户端请求: GET /api/neodb/me/shelf?category=complete
 
-## Available Endpoints
+转发到: GET {API_URL}/api/auth/neodb/api/me/shelf?category=complete
+携带: Authorization: Bearer {JWT}
+```
 
-### 1. Get Shelf Data
+### apps/api 层
+```
+收到请求: GET /api/auth/neodb/api/me/shelf?category=complete
+JWT: {user_id}
 
-**Endpoint:** `GET /api/neodb/shelf`
+1. 验证 JWT → 获取 user_id
+2. 查询数据库 → 获取 instance, accessToken
+3. 转发到: GET https://{instance}/api/me/shelf?category=complete
+   携带: Authorization: Bearer {accessToken}
+```
 
-**Query Parameters:**
-- `category` (optional): `wishlist`, `progress`, or `complete`
+## 📝 使用方法
 
-**Example:**
+### 1. 获取 JWT Token
+
+```typescript
+// 从 apps/api 获取 JWT
+const response = await fetch('http://localhost:8787/api/auth/token', {
+  credentials: 'include',
+});
+
+const { token } = await response.json();
+```
+
+### 2. 调用任何 NeoDB API
+
+客户端只需：
+- 将 `https://neodb.social/api/*` 替换为 `http://localhost:8788/api/neodb/*`
+- 添加 JWT header
+
+**NeoDB 原始 API:**
 ```bash
-curl -H "Authorization: Bearer YOUR_JWT" \
-  "http://localhost:8788/api/neodb/shelf?category=complete"
+GET https://neodb.social/api/me/shelf?category=complete
+Authorization: Bearer {neodb_token}
 ```
 
-**Response:**
-```json
-{
-  "items": [...],
-  "count": 42,
-  "category": "complete"
-}
-```
-
-### 2. Get Marks (Ratings/Reviews)
-
-**Endpoint:** `GET /api/neodb/marks`
-
-**Query Parameters:**
-- `year` (optional): Filter by year (e.g., `2024`)
-- `category` (optional): Filter by category
-- `limit` (optional): Number of results
-- `offset` (optional): Pagination offset
-
-**Example:**
+**通过代理调用:**
 ```bash
-curl -H "Authorization: Bearer YOUR_JWT" \
-  "http://localhost:8788/api/neodb/marks?year=2024&limit=50"
+GET http://localhost:8788/api/neodb/me/shelf?category=complete
+Authorization: Bearer {jwt}
 ```
 
-**Response:**
-```json
-{
-  "marks": [
-    {
-      "item": {...},
-      "rating": 5,
-      "comment": "Great book!",
-      "created_at": "2024-01-15T10:30:00Z"
+## 🔥 完整示例
+
+### TypeScript/JavaScript
+
+```typescript
+class NeoDBClient {
+  constructor(
+    private wrappedUrl: string,
+    private jwt: string
+  ) {}
+
+  private async request(path: string, options?: RequestInit) {
+    // 直接映射 NeoDB API 路径
+    const url = `${this.wrappedUrl}/api/neodb${path}`;
+
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Authorization': `Bearer ${this.jwt}`,
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
     }
-  ],
-  "total": 156
-}
-```
 
-### 3. Get Item Details
-
-**Endpoint:** `GET /api/neodb/item/:id`
-
-**Path Parameters:**
-- `id`: Item ID or UUID
-
-**Example:**
-```bash
-curl -H "Authorization: Bearer YOUR_JWT" \
-  "http://localhost:8788/api/neodb/item/abc123"
-```
-
-**Response:**
-```json
-{
-  "id": "abc123",
-  "title": "Example Book",
-  "author": "Author Name",
-  "rating": 4.5,
-  ...
-}
-```
-
-### 4. Get User Statistics
-
-**Endpoint:** `GET /api/neodb/stats`
-
-**Example:**
-```bash
-curl -H "Authorization: Bearer YOUR_JWT" \
-  "http://localhost:8788/api/neodb/stats"
-```
-
-**Response:**
-```json
-{
-  "total_items": 250,
-  "total_marks": 180,
-  "reading_hours": 1200,
-  "top_categories": [...],
-  ...
-}
-```
-
-## Usage in Code
-
-### TypeScript/JavaScript Example
-
-```typescript
-// Get JWT from apps/api first
-const authResponse = await fetch('http://api-url/api/auth/token', {
-  credentials: 'include'
-});
-const { token } = await authResponse.json();
-
-// Use JWT to call wrapped service
-const shelfResponse = await fetch('http://wrapped-url/api/neodb/shelf?category=complete', {
-  headers: {
-    'Authorization': `Bearer ${token}`
+    return response.json();
   }
-});
 
-const shelfData = await shelfResponse.json();
-console.log('Complete shelf:', shelfData);
+  // ===== GET 请求 =====
 
-// Get 2024 reading data
-const marksResponse = await fetch('http://wrapped-url/api/neodb/marks?year=2024', {
-  headers: {
-    'Authorization': `Bearer ${token}`
+  // 获取书架
+  async getShelf(category?: 'wishlist' | 'progress' | 'complete') {
+    const query = category ? `?category=${category}` : '';
+    return this.request(`/me/shelf${query}`);
   }
+
+  // 获取标注
+  async getMarks(year?: number, limit?: number, offset?: number) {
+    const params = new URLSearchParams();
+    if (year) params.set('year', String(year));
+    if (limit) params.set('limit', String(limit));
+    if (offset) params.set('offset', String(offset));
+
+    const query = params.toString() ? `?${params}` : '';
+    return this.request(`/me/marks${query}`);
+  }
+
+  // 获取单个条目
+  async getItem(itemId: string) {
+    return this.request(`/item/${itemId}`);
+  }
+
+  // 获取用户统计
+  async getStats() {
+    return this.request('/me/stats');
+  }
+
+  // 搜索
+  async search(query: string, category?: string) {
+    const params = new URLSearchParams({ q: query });
+    if (category) params.set('category', category);
+
+    return this.request(`/catalog/search?${params}`);
+  }
+
+  // ===== POST 请求 =====
+
+  // 添加标注
+  async createMark(itemId: string, data: { rating?: number; comment?: string; shelf_type?: string }) {
+    return this.request(`/me/marks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        item_id: itemId,
+        ...data
+      }),
+    });
+  }
+
+  // ===== PUT 请求 =====
+
+  // 更新标注
+  async updateMark(markId: string, data: { rating?: number; comment?: string }) {
+    return this.request(`/me/marks/${markId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ===== DELETE 请求 =====
+
+  // 删除标注
+  async deleteMark(markId: string) {
+    return this.request(`/me/marks/${markId}`, {
+      method: 'DELETE',
+    });
+  }
+}
+
+// ===== 使用 =====
+
+const client = new NeoDBClient('http://localhost:8788', jwt);
+
+// GET: 获取想读列表
+const wishlist = await client.getShelf('wishlist');
+
+// GET: 获取 2024 年阅读记录
+const marks2024 = await client.getMarks(2024);
+
+// POST: 标记一本书为"读过"并打 5 分
+await client.createMark('book_id_123', {
+  rating: 5,
+  comment: '很棒的书！',
+  shelf_type: 'complete'
 });
 
-const marks2024 = await marksResponse.json();
-console.log('2024 readings:', marks2024);
+// PUT: 更新评分
+await client.updateMark('mark_id_456', {
+  rating: 4,
+  comment: '重读后觉得是 4 分'
+});
+
+// DELETE: 删除标注
+await client.deleteMark('mark_id_456');
 ```
 
-### Frontend Integration Example
+### React 完整示例
 
-```typescript
-// Store JWT in memory or secure storage
-let jwt: string | null = null;
+```tsx
+import { useState, useEffect } from 'react';
 
-async function login() {
-  const response = await fetch('http://api-url/api/auth/token', {
-    credentials: 'include'
-  });
-  const data = await response.json();
-  jwt = data.token;
+function useNeoDBClient(jwt: string) {
+  return {
+    async getMarks(year: number) {
+      const response = await fetch(
+        `http://localhost:8788/api/neodb/me/marks?year=${year}`,
+        {
+          headers: { 'Authorization': `Bearer ${jwt}` }
+        }
+      );
+      return response.json();
+    },
+
+    async createMark(itemId: string, rating: number, comment: string) {
+      const response = await fetch(
+        'http://localhost:8788/api/neodb/me/marks',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${jwt}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            item_id: itemId,
+            rating,
+            comment,
+            shelf_type: 'complete'
+          }),
+        }
+      );
+      return response.json();
+    }
+  };
 }
 
-async function getNeoDBShelf(category?: string) {
-  if (!jwt) throw new Error('Not authenticated');
+export function ReadingWrapped() {
+  const [jwt, setJwt] = useState<string>('');
+  const [marks, setMarks] = useState([]);
+  const client = useNeoDBClient(jwt);
 
-  const url = new URL('http://wrapped-url/api/neodb/shelf');
-  if (category) url.searchParams.set('category', category);
+  useEffect(() => {
+    // 1. 获取 JWT
+    fetch('http://localhost:8787/api/auth/token', {
+      credentials: 'include'
+    })
+      .then(r => r.json())
+      .then(data => setJwt(data.token));
+  }, []);
 
-  const response = await fetch(url.toString(), {
-    headers: { 'Authorization': `Bearer ${jwt}` }
-  });
+  useEffect(() => {
+    if (!jwt) return;
 
-  return response.json();
+    // 2. 获取 2024 年数据
+    client.getMarks(2024)
+      .then(data => setMarks(data.marks || []));
+  }, [jwt]);
+
+  const handleRateBook = async (itemId: string) => {
+    await client.createMark(itemId, 5, '非常喜欢！');
+    // 刷新列表
+    const data = await client.getMarks(2024);
+    setMarks(data.marks || []);
+  };
+
+  return (
+    <div>
+      <h1>2024 年度阅读</h1>
+      {marks.map((mark: any) => (
+        <div key={mark.id}>
+          <h3>{mark.item.title}</h3>
+          <p>评分: {mark.rating}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
-
-// Usage
-await login();
-const complete = await getNeoDBShelf('complete');
-const wishlist = await getNeoDBShelf('wishlist');
 ```
 
-## Error Handling
+## 🌐 支持所有 NeoDB API
 
-All endpoints return standard HTTP status codes:
+理论上支持所有 NeoDB API 端点，只需要替换域名：
 
-- `200 OK`: Success
-- `400 Bad Request`: Invalid parameters
-- `401 Unauthorized`: JWT invalid or NeoDB token unavailable
-- `404 Not Found`: NeoDB account not connected
-- `500 Internal Server Error`: Server error
+| NeoDB 原始 API | 代理 API |
+|---------------|---------|
+| `GET https://neodb.social/api/me/shelf` | `GET /api/neodb/me/shelf` |
+| `GET https://neodb.social/api/me/marks` | `GET /api/neodb/me/marks` |
+| `GET https://neodb.social/api/item/:id` | `GET /api/neodb/item/:id` |
+| `GET https://neodb.social/api/catalog/search` | `GET /api/neodb/catalog/search` |
+| `POST https://neodb.social/api/me/marks` | `POST /api/neodb/me/marks` |
+| `PUT https://neodb.social/api/me/marks/:id` | `PUT /api/neodb/me/marks/:id` |
+| `DELETE https://neodb.social/api/me/marks/:id` | `DELETE /api/neodb/me/marks/:id` |
 
-**Error Response Format:**
-```json
-{
-  "error": "NeoDB account not connected"
-}
+**规则：**
+```
+https://{instance}/api/* → /api/neodb/*
 ```
 
-## Configuration
+## 🔒 安全特性
 
-### Environment Variables
+✅ **Token 永不暴露**
+- NeoDB access token 只存在服务端
+- 客户端只持有 JWT（可短期过期）
 
-**apps/wrapped** needs:
-```bash
-API_URL=http://localhost:8787  # Development
-API_URL=https://api.piecelet.app  # Production
-```
+✅ **自动实例路由**
+- 根据用户自动选择正确的 NeoDB 实例
+- 支持多实例用户
 
-Add to `wrangler.jsonc`:
+✅ **完整的 HTTP 方法支持**
+- GET, POST, PUT, DELETE, PATCH 全部支持
+- 自动转发 request body 和 headers
+
+✅ **透明代理**
+- 完整转发 query parameters
+- 完整转发 response status 和 body
+- 保持 Content-Type
+
+## ⚙️ 环境配置
+
+### apps/wrapped
+
+在 `wrangler.jsonc` 中配置：
+
 ```json
 {
   "vars": {
@@ -223,34 +330,121 @@ Add to `wrangler.jsonc`:
 }
 ```
 
-## Data Model
+生产环境：
+```json
+{
+  "vars": {
+    "API_URL": "https://api.piecelet.app"
+  }
+}
+```
 
-### Database Schema (apps/api)
+## 🚨 错误处理
 
-**users table:**
-- `email`: With instance suffix (e.g., `user@example.com+neodb.social`)
-- `realEmail`: Original email without suffix
-- `username`: Unique identifier (e.g., `@username@neodb.social`)
+```typescript
+try {
+  const marks = await client.getMarks(2024);
+} catch (error) {
+  if (error.message.includes('401')) {
+    // JWT 过期，需要重新获取
+    const newJwt = await getNewJWT();
+    // 重试
+  } else if (error.message.includes('404')) {
+    // NeoDB 账户未绑定
+    window.location.href = '/login';
+  } else {
+    console.error('API Error:', error);
+  }
+}
+```
 
-**accounts table:**
-- `accessToken`: NeoDB access token (server-only)
-- `instance`: NeoDB instance domain (e.g., `neodb.social`)
-- `isAccessTokenRedacted`: Token revocation status
+## 📊 请求流程详解
 
-## Security Best Practices
+```
+1. 客户端
+   ↓
+   GET /api/neodb/me/shelf?category=complete
+   Authorization: Bearer eyJhbGc...
 
-1. ✅ **Never expose NeoDB access token to client**
-2. ✅ **Always use JWT for authentication**
-3. ✅ **Validate JWT on every request**
-4. ✅ **Check token revocation status**
-5. ✅ **Use HTTPS in production**
-6. ✅ **Implement rate limiting** (TODO)
-7. ✅ **Add request logging** (TODO)
+2. apps/wrapped (JWT 认证)
+   ↓ 验证 JWT ✅
+   ↓
+   转发到: GET http://localhost:8787/api/auth/neodb/api/me/shelf?category=complete
+   Authorization: Bearer eyJhbGc...
 
-## Future Enhancements
+3. apps/api (Better Auth)
+   ↓ 验证 JWT → user_id: "user_123"
+   ↓ 查询数据库:
+      SELECT instance, accessToken
+      FROM accounts
+      WHERE userId='user_123' AND providerId='neodb'
+   ↓ 结果: instance='neodb.social', accessToken='neodb_token_xyz'
+   ↓
+   转发到: GET https://neodb.social/api/me/shelf?category=complete
+   Authorization: Bearer neodb_token_xyz
 
-- [ ] Add response caching (reduce NeoDB API calls)
-- [ ] Implement rate limiting per user
-- [ ] Add webhook support for data sync
-- [ ] Support multiple NeoDB accounts per user
-- [ ] Add data aggregation/statistics endpoints
+4. NeoDB
+   ↓ 验证 access token ✅
+   ↓ 返回数据
+
+5. apps/api → apps/wrapped → 客户端
+   ↓
+   返回: { items: [...], count: 42 }
+```
+
+## 🎯 最佳实践
+
+1. **JWT 管理**
+   ```typescript
+   // 存储在内存中，不要用 localStorage（更安全）
+   let jwt: string | null = null;
+
+   async function getJWT() {
+     if (!jwt) {
+       const res = await fetch('/api/auth/token', { credentials: 'include' });
+       jwt = (await res.json()).token;
+     }
+     return jwt;
+   }
+   ```
+
+2. **错误重试**
+   ```typescript
+   async function fetchWithRetry(url: string, options: RequestInit, retries = 1) {
+     try {
+       return await fetch(url, options);
+     } catch (error) {
+       if (retries > 0) {
+         await new Promise(r => setTimeout(r, 1000));
+         return fetchWithRetry(url, options, retries - 1);
+       }
+       throw error;
+     }
+   }
+   ```
+
+3. **类型安全**
+   ```typescript
+   interface NeoDBMark {
+     id: string;
+     item: {
+       id: string;
+       title: string;
+       author: string;
+     };
+     rating: number;
+     comment: string;
+     created_at: string;
+   }
+
+   async function getMarks(year: number): Promise<NeoDBMark[]> {
+     const response = await client.request(`/me/marks?year=${year}`);
+     return response.marks;
+   }
+   ```
+
+## 📚 参考资源
+
+- [NeoDB API 文档](https://neodb.social/developer/)
+- [Better Auth 文档](https://www.better-auth.com/)
+- [Hono 文档](https://hono.dev/)

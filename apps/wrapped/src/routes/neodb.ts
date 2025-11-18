@@ -12,137 +12,78 @@ const getApiUrl = (c: any) => {
 };
 
 /**
- * Example: Get user's NeoDB shelf
- * GET /api/neodb/shelf?category=complete
+ * Universal NeoDB API Proxy
+ * Forwards all /api/neodb/* requests to apps/api
+ *
+ * Path mapping:
+ * /api/neodb/* -> {API_URL}/api/auth/neodb/api/*
+ *
+ * Examples:
+ * GET  /api/neodb/me/shelf?category=complete
+ * GET  /api/neodb/me/marks?year=2024
+ * GET  /api/neodb/item/:id
+ * POST /api/neodb/me/marks
+ * PUT  /api/neodb/me/marks/:id
+ * DELETE /api/neodb/me/marks/:id
  */
-neodb.get("/api/neodb/shelf", jwtAuth, async (c) => {
-  const user = c.get("user");
+neodb.all("/api/neodb/*", jwtAuth, async (c) => {
   const apiUrl = getApiUrl(c);
 
-  const category = c.req.query("category");
-  const url = new URL(`${apiUrl}/api/auth/neodb/api/shelf`);
-  if (category) {
-    url.searchParams.set("category", category);
-  }
+  // Extract path after /api/neodb/
+  // Example: /api/neodb/me/shelf -> /me/shelf
+  const neodbPath = c.req.path.replace(/^\/api\/neodb/, "");
+
+  // Build target URL: {API_URL}/api/auth/neodb/api{path}
+  const targetUrl = new URL(`/api/auth/neodb/api${neodbPath}`, apiUrl);
+
+  // Copy all query parameters
+  const url = new URL(c.req.url);
+  url.searchParams.forEach((value, key) => {
+    targetUrl.searchParams.set(key, value);
+  });
 
   try {
-    const response = await fetch(url.toString(), {
-      headers: {
-        // Forward JWT from wrapped service to api service
-        Authorization: c.req.header("Authorization") || "",
-      },
-    });
+    // Forward headers
+    const headers: Record<string, string> = {
+      Authorization: c.req.header("Authorization") || "",
+    };
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
-      return c.json(error, response.status);
+    // Copy Content-Type if present
+    const contentType = c.req.header("Content-Type");
+    if (contentType) {
+      headers["Content-Type"] = contentType;
     }
 
-    const data = await response.json();
-    return c.json(data);
-  } catch (error) {
-    console.error("[Wrapped -> API] NeoDB shelf fetch error:", error);
-    return c.json({ error: "Failed to fetch NeoDB shelf" }, 500);
-  }
-});
+    const fetchOptions: RequestInit = {
+      method: c.req.method,
+      headers,
+    };
 
-/**
- * Example: Get user's NeoDB marks (ratings/reviews)
- * GET /api/neodb/marks?year=2024
- */
-neodb.get("/api/neodb/marks", jwtAuth, async (c) => {
-  const user = c.get("user");
-  const apiUrl = getApiUrl(c);
-
-  const year = c.req.query("year");
-  const category = c.req.query("category");
-  const limit = c.req.query("limit");
-  const offset = c.req.query("offset");
-
-  const url = new URL(`${apiUrl}/api/auth/neodb/api/marks`);
-  if (year) url.searchParams.set("year", year);
-  if (category) url.searchParams.set("category", category);
-  if (limit) url.searchParams.set("limit", limit);
-  if (offset) url.searchParams.set("offset", offset);
-
-  try {
-    const response = await fetch(url.toString(), {
-      headers: {
-        Authorization: c.req.header("Authorization") || "",
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
-      return c.json(error, response.status);
+    // Forward request body for POST/PUT/PATCH/DELETE
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(c.req.method)) {
+      const body = await c.req.text();
+      if (body) {
+        fetchOptions.body = body;
+      }
     }
 
-    const data = await response.json();
-    return c.json(data);
-  } catch (error) {
-    console.error("[Wrapped -> API] NeoDB marks fetch error:", error);
-    return c.json({ error: "Failed to fetch NeoDB marks" }, 500);
-  }
-});
+    const response = await fetch(targetUrl.toString(), fetchOptions);
 
-/**
- * Example: Get specific NeoDB item
- * GET /api/neodb/item/:id
- */
-neodb.get("/api/neodb/item/:id", jwtAuth, async (c) => {
-  const user = c.get("user");
-  const apiUrl = getApiUrl(c);
-  const itemId = c.req.param("id");
+    // Forward response
+    const responseBody = await response.text();
 
-  const url = `${apiUrl}/api/auth/neodb/api/item/${itemId}`;
-
-  try {
-    const response = await fetch(url, {
+    return new Response(responseBody, {
+      status: response.status,
       headers: {
-        Authorization: c.req.header("Authorization") || "",
+        "Content-Type": response.headers.get("Content-Type") || "application/json",
       },
     });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
-      return c.json(error, response.status);
-    }
-
-    const data = await response.json();
-    return c.json(data);
   } catch (error) {
-    console.error("[Wrapped -> API] NeoDB item fetch error:", error);
-    return c.json({ error: "Failed to fetch NeoDB item" }, 500);
-  }
-});
-
-/**
- * Example: Get user's NeoDB statistics
- * GET /api/neodb/stats
- */
-neodb.get("/api/neodb/stats", jwtAuth, async (c) => {
-  const user = c.get("user");
-  const apiUrl = getApiUrl(c);
-
-  const url = `${apiUrl}/api/auth/neodb/api/stats`;
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: c.req.header("Authorization") || "",
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
-      return c.json(error, response.status);
-    }
-
-    const data = await response.json();
-    return c.json(data);
-  } catch (error) {
-    console.error("[Wrapped -> API] NeoDB stats fetch error:", error);
-    return c.json({ error: "Failed to fetch NeoDB stats" }, 500);
+    console.error("[Wrapped -> API] NeoDB proxy error:", error);
+    return c.json({
+      error: "Failed to proxy request to API service",
+      details: error instanceof Error ? error.message : String(error)
+    }, 500);
   }
 });
 
