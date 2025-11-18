@@ -270,7 +270,8 @@ export const neodbOAuthPlugin = {
             instance: instanceURL.host,
           } as any,
           callbackURL: parsed.callbackURL || "/",
-          overrideUserInfo: false,
+          // Always update user info on login to sync latest changes from NeoDB
+          overrideUserInfo: true,
         });
 
         if ((result as { error: unknown }).error) {
@@ -284,8 +285,8 @@ export const neodbOAuthPlugin = {
         const cookieCtx = ctx as unknown as Parameters<typeof setSessionCookie>[0];
         await setSessionCookie(cookieCtx, { session: data.session, user: data.user });
 
-        // Ensure isAccessTokenRedacted is reset to false on successful login
-        // This handles both new accounts and re-login scenarios
+        // Update account with custom fields that Better Auth doesn't handle automatically
+        // This ensures instance and isAccessTokenRedacted are always up-to-date
         try {
           await adapter.update({
             model: "account",
@@ -296,10 +297,11 @@ export const neodbOAuthPlugin = {
             ],
             update: {
               isAccessTokenRedacted: false,
+              instance: instanceURL.host,  // Ensure instance is always set
             },
           });
         } catch (e) {
-          console.error("[NeoDB Plugin] Failed to reset isAccessTokenRedacted flag:", e);
+          console.error("[NeoDB Plugin] Failed to update account custom fields:", e);
           // Don't throw - login was successful, this is just cleanup
         }
 
