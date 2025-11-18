@@ -10,6 +10,7 @@
     "db:migrate:prod": "wrangler d1 migrations apply WRAPPED_DB --remote"
   },
   "dependencies": {
+    "better-auth": "^1.3.34",
     "drizzle-orm": "^0.44.7",
     "hono": "^4.10.6",
     "jose": "^6.1.2",

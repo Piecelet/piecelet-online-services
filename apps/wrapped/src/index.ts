@@ -104,13 +104,15 @@ app.get("/", (c) => {
     </div>
 
     <div class="section">
-        <h2>步骤 2: 获取并设置 JWT Cookie</h2>
+        <h2>步骤 2: 获取 JWT Token</h2>
         <div id="jwt-status" class="status"></div>
         <p style="margin-bottom: 15px; color: #57606a;">
-            从账户服务获取 JWT token，并设置到当前域名的 cookie 中，后续请求会自动携带
+            使用 Better Auth 的 <code>/api/auth/token</code> 端点获取 JWT，保存到 localStorage<br>
+            后续请求通过 <code>Authorization: Bearer</code> header 发送
         </p>
-        <button onclick="getJWTCookie()">🍪 获取并设置 JWT Cookie</button>
-        <button class="secondary" onclick="showCookies()">👀 查看 Cookies</button>
+        <button onclick="getJWTToken()">🎫 获取 JWT Token</button>
+        <button class="secondary" onclick="showToken()">👀 查看 Token</button>
+        <button class="secondary" onclick="clearToken()">🗑️ 清除 Token</button>
         <div id="jwt-response" class="response" style="display: none;"></div>
     </div>
 
@@ -155,7 +157,6 @@ app.get("/", (c) => {
 
     <div class="section">
         <h2>🛠️ 工具</h2>
-        <button class="secondary" onclick="clearCookies()">🗑️ 清除所有 Cookies</button>
         <button class="secondary" onclick="clearResponses()">🧹 清空响应</button>
     </div>
 
@@ -204,36 +205,27 @@ app.get("/", (c) => {
             }
         }
 
-        async function getJWTCookie() {
+        async function getJWTToken() {
             try {
-                // Step 1: Get JWT token from account service
-                const tokenResponse = await fetch(\`\${ACCOUNT_URL}/api/auth/jwt-token\`, { credentials: 'include' });
-                const tokenData = await tokenResponse.json();
-
-                if (!tokenResponse.ok) {
-                    showStatus('jwt-status', '❌ 获取 JWT 失败: ' + (tokenData.error || tokenResponse.statusText), false);
-                    showResponse('jwt-response', tokenData);
-                    return;
-                }
-
-                // Step 2: Set JWT cookie in wrapped service domain
-                const setCookieResponse = await fetch(\`\${WRAPPED_URL}/api/set-jwt-cookie\`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: tokenData.token })
+                // Use Better Auth native /api/auth/token endpoint
+                const response = await fetch(\`\${ACCOUNT_URL}/api/auth/token\`, {
+                    credentials: 'include'
                 });
-                const setCookieData = await setCookieResponse.json();
 
-                if (setCookieResponse.ok) {
-                    showStatus('jwt-status', '✅ JWT Cookie 设置成功！', true);
+                const data = await response.json();
+
+                if (response.ok && data.token) {
+                    // Store token in localStorage
+                    localStorage.setItem('auth_jwt', data.token);
+                    showStatus('jwt-status', '✅ JWT Token 获取成功并已保存！', true);
                     showResponse('jwt-response', {
-                        step1_get_token: tokenData,
-                        step2_set_cookie: setCookieData
+                        message: 'Token saved to localStorage',
+                        token: data.token.substring(0, 50) + '...',
+                        fullToken: data.token
                     });
                 } else {
-                    showStatus('jwt-status', '❌ 设置 Cookie 失败: ' + (setCookieData.error || setCookieResponse.statusText), false);
-                    showResponse('jwt-response', { tokenData, setCookieData });
+                    showStatus('jwt-status', '❌ 获取失败: ' + (data.error || response.statusText), false);
+                    showResponse('jwt-response', data);
                 }
             } catch (error) {
                 showStatus('jwt-status', '❌ 请求失败: ' + error.message, false);
@@ -241,17 +233,34 @@ app.get("/", (c) => {
             }
         }
 
-        function showCookies() {
-            const cookies = document.cookie.split(';').map(c => {
-                const [key, value] = c.trim().split('=');
-                return { key, value: value?.substring(0, 50) + (value?.length > 50 ? '...' : '') };
-            });
-            showResponse('jwt-response', { cookies });
+        function showToken() {
+            const token = localStorage.getItem('auth_jwt');
+            if (token) {
+                showResponse('jwt-response', {
+                    token: token.substring(0, 100) + '...',
+                    fullToken: token,
+                    length: token.length
+                });
+            } else {
+                showResponse('jwt-response', { message: 'No token found in localStorage' });
+            }
+        }
+
+        function clearToken() {
+            localStorage.removeItem('auth_jwt');
+            showStatus('jwt-status', '✅ Token 已清除！', true);
+        }
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('auth_jwt');
+            return token ? { 'Authorization': \`Bearer \${token}\` } : {};
         }
 
         async function getUser() {
             try {
-                const response = await fetch(\`\${WRAPPED_URL}/api/user\`, { credentials: 'include' });
+                const response = await fetch(\`\${WRAPPED_URL}/api/user\`, {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
                 if (response.ok) {
                     showStatus('api-status', '✅ 获取用户信息成功！', true);
@@ -268,7 +277,9 @@ app.get("/", (c) => {
 
         async function listWrapped() {
             try {
-                const response = await fetch(\`\${WRAPPED_URL}/api/wrapped\`, { credentials: 'include' });
+                const response = await fetch(\`\${WRAPPED_URL}/api/wrapped\`, {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
                 if (response.ok) {
                     showStatus('api-status', '✅ 获取列表成功！', true);
@@ -285,7 +296,9 @@ app.get("/", (c) => {
 
         async function getWrapped2024() {
             try {
-                const response = await fetch(\`\${WRAPPED_URL}/api/wrapped/2024\`, { credentials: 'include' });
+                const response = await fetch(\`\${WRAPPED_URL}/api/wrapped/2024\`, {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
                 if (response.ok) {
                     showStatus('api-status', '✅ 获取 2024 数据成功！', true);
@@ -304,8 +317,10 @@ app.get("/", (c) => {
             try {
                 const response = await fetch(\`\${WRAPPED_URL}/api/wrapped\`, {
                     method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeaders()
+                    },
                     body: JSON.stringify({ year: 2024, data: { totalBooks: 42, favoriteGenre: "科幻", topAuthors: ["刘慈欣", "阿西莫夫"], readingHours: 156 } })
                 });
                 const data = await response.json();
@@ -327,8 +342,10 @@ app.get("/", (c) => {
                 const customData = JSON.parse(document.getElementById('wrapped-data').value);
                 const response = await fetch(\`\${WRAPPED_URL}/api/wrapped\`, {
                     method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeaders()
+                    },
                     body: JSON.stringify(customData)
                 });
                 const data = await response.json();
@@ -343,13 +360,6 @@ app.get("/", (c) => {
                 showStatus('api-status', '❌ 请求失败: ' + error.message, false);
                 showResponse('api-response', { error: error.message });
             }
-        }
-
-        function clearCookies() {
-            document.cookie.split(";").forEach(c => {
-                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
-            alert('✅ Cookies 已清除！');
         }
 
         function clearResponses() {
@@ -370,41 +380,6 @@ app.get("/health", (c) => {
         status: "ok",
         timestamp: new Date().toISOString()
     });
-});
-
-// Set JWT cookie endpoint
-// This allows the client to set JWT token in wrapped service's cookie
-app.post("/api/set-jwt-cookie", async (c) => {
-    try {
-        const body = await c.req.json();
-        const { token } = body;
-
-        if (!token) {
-            return c.json({ error: "Token is required" }, 400);
-        }
-
-        // Set JWT in cookie for this domain
-        const cookieOptions = [
-            `auth_jwt=${token}`,
-            'Path=/',
-            'HttpOnly',
-            'SameSite=Lax',
-            'Max-Age=604800', // 7 days
-        ];
-
-        c.header('Set-Cookie', cookieOptions.join('; '));
-
-        return c.json({
-            success: true,
-            message: "JWT cookie set successfully"
-        });
-    } catch (error) {
-        console.error("Error setting JWT cookie:", error);
-        return c.json(
-            { error: "Failed to set JWT cookie" },
-            500
-        );
-    }
 });
 
 // Get or sync user information from JWT

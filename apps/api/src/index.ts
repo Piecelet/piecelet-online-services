@@ -357,49 +357,6 @@ app.get("/protected", async c => {
     }
 });
 
-// Get JWT token for cross-service authentication
-// Returns token as JSON (client needs to send it to target service)
-app.get("/api/auth/jwt-token", async c => {
-    const auth = c.get("auth");
-
-    try {
-        // Check if user is authenticated
-        const session = await auth.api.getSession({
-            headers: c.req.raw.headers,
-        });
-
-        if (!session?.session || !session?.user) {
-            return c.json({ error: "Unauthorized: Not logged in" }, 401);
-        }
-
-        // Get JWT token from the /token endpoint
-        const tokenResponse = await auth.api.getToken({
-            headers: c.req.raw.headers,
-        });
-
-        if (!tokenResponse?.token) {
-            return c.json({ error: "Failed to generate JWT token" }, 500);
-        }
-
-        return c.json({
-            success: true,
-            token: tokenResponse.token,
-            user: {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.name,
-                username: session.user.username,
-            },
-        });
-    } catch (error) {
-        console.error("Error getting JWT token:", error);
-        return c.json(
-            { error: "Failed to get JWT token" },
-            500
-        );
-    }
-});
-
 // Simple health check
 app.get("/health", c => {
     return c.json({ status: "ok", timestamp: new Date().toISOString() });
