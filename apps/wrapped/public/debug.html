@@ -310,11 +310,10 @@
 
     <script>
         const ACCOUNT_URL = 'http://localhost:8787';
-        const WRAPPED_URL = 'http://localhost:8788';
 
         // 更新配置显示
         document.getElementById('account-url').textContent = ACCOUNT_URL;
-        document.getElementById('wrapped-url').textContent = WRAPPED_URL;
+        document.getElementById('wrapped-url').textContent = window.location.origin;
 
         function showStatus(elementId, message, isSuccess) {
             const el = document.getElementById(elementId);
@@ -398,7 +397,7 @@
 
         async function getUser() {
             try {
-                const response = await fetch(`${WRAPPED_URL}/api/user`, {
+                const response = await fetch('/api/user', {
                     credentials: 'include'
                 });
 
@@ -419,7 +418,7 @@
 
         async function listWrapped() {
             try {
-                const response = await fetch(`${WRAPPED_URL}/api/wrapped`, {
+                const response = await fetch('/api/wrapped', {
                     credentials: 'include'
                 });
 
@@ -440,7 +439,7 @@
 
         async function getWrapped2024() {
             try {
-                const response = await fetch(`${WRAPPED_URL}/api/wrapped/2024`, {
+                const response = await fetch('/api/wrapped/2024', {
                     credentials: 'include'
                 });
 
@@ -471,7 +470,7 @@
             };
 
             try {
-                const response = await fetch(`${WRAPPED_URL}/api/wrapped`, {
+                const response = await fetch('/api/wrapped', {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
@@ -497,7 +496,7 @@
             try {
                 const customData = JSON.parse(document.getElementById('wrapped-data').value);
 
-                const response = await fetch(`${WRAPPED_URL}/api/wrapped`, {
+                const response = await fetch('/api/wrapped', {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },

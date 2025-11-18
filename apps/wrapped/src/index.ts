@@ -162,9 +162,8 @@ app.get("/", (c) => {
 
     <script>
         const ACCOUNT_URL = 'http://localhost:8787';
-        const WRAPPED_URL = 'http://localhost:8788';
         document.getElementById('account-url').textContent = ACCOUNT_URL;
-        document.getElementById('wrapped-url').textContent = WRAPPED_URL;
+        document.getElementById('wrapped-url').textContent = window.location.origin;
 
         function showStatus(elementId, message, isSuccess) {
             const el = document.getElementById(elementId);
@@ -258,7 +257,7 @@ app.get("/", (c) => {
 
         async function getUser() {
             try {
-                const response = await fetch(\`\${WRAPPED_URL}/api/user\`, {
+                const response = await fetch('/api/user', {
                     headers: getAuthHeaders()
                 });
                 const data = await response.json();
@@ -277,7 +276,7 @@ app.get("/", (c) => {
 
         async function listWrapped() {
             try {
-                const response = await fetch(\`\${WRAPPED_URL}/api/wrapped\`, {
+                const response = await fetch('/api/wrapped', {
                     headers: getAuthHeaders()
                 });
                 const data = await response.json();
@@ -296,7 +295,7 @@ app.get("/", (c) => {
 
         async function getWrapped2024() {
             try {
-                const response = await fetch(\`\${WRAPPED_URL}/api/wrapped/2024\`, {
+                const response = await fetch('/api/wrapped/2024', {
                     headers: getAuthHeaders()
                 });
                 const data = await response.json();
@@ -315,7 +314,7 @@ app.get("/", (c) => {
 
         async function createWrapped() {
             try {
-                const response = await fetch(\`\${WRAPPED_URL}/api/wrapped\`, {
+                const response = await fetch('/api/wrapped', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -340,7 +339,7 @@ app.get("/", (c) => {
         async function createCustomWrapped() {
             try {
                 const customData = JSON.parse(document.getElementById('wrapped-data').value);
-                const response = await fetch(\`\${WRAPPED_URL}/api/wrapped\`, {
+                const response = await fetch('/api/wrapped', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
