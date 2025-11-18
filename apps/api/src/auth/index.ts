@@ -7,7 +7,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { schema } from "../db";
 import type { CloudflareBindings } from "../env";
 import { neodbOAuthPlugin } from "../neodb/plugin";
-import { getAllowedOrigins, getBaseURL } from "../config/origins";
+import { getAllowedDomains, getAllowedOrigins, getBaseURL } from "../config/origins";
 import { username } from "better-auth/plugins";
 
 // Single auth configuration that handles both CLI and runtime scenarios
@@ -45,6 +45,7 @@ function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) 
                 advanced: {
                     crossSubDomainCookies: {
                         enabled: true,
+                        domains: getAllowedDomains(),
                     }
                 }
             }
