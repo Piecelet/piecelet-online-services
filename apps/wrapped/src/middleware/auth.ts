@@ -54,15 +54,36 @@ export const jwtAuth = createMiddleware<{ Variables: AuthContext }>(async (c, ne
             new URL(`${accountServiceURL}/api/auth/jwks`)
         );
 
-        // Verify the JWT token
+        // Verify the JWT token with strict validation
+        // jwtVerify will automatically check:
+        // - Signature validity using JWKS
+        // - Token expiration (exp claim)
+        // - Not before time (nbf claim if present)
+        // - Issuer (iss claim)
+        // - Audience (aud claim)
         const { payload } = await jwtVerify(token, JWKS, {
             issuer: accountServiceURL,
             audience: accountServiceURL,
+            // Require exp claim
+            requiredClaims: ['sub', 'exp'],
         });
+
+        // Additional validation: Check required payload fields
+        if (!payload.sub || typeof payload.sub !== 'string') {
+            throw new Error('Invalid token: missing or invalid subject (user ID)');
+        }
+
+        // Validate expiration manually (extra safety)
+        if (payload.exp) {
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.exp < now) {
+                throw new Error('Token has expired');
+            }
+        }
 
         // Store user info in context
         c.set("user", {
-            sub: payload.sub as string,
+            sub: payload.sub,
             email: payload.email as string,
             name: payload.name as string,
             username: payload.username as string,
@@ -72,10 +93,29 @@ export const jwtAuth = createMiddleware<{ Variables: AuthContext }>(async (c, ne
 
         await next();
     } catch (error) {
-        console.error("JWT verification failed:", error);
+        // Log detailed error for debugging
+        console.error("JWT verification failed:", {
+            error: error instanceof Error ? error.message : String(error),
+            name: error instanceof Error ? error.name : undefined,
+        });
+
+        // Return user-friendly error message
+        let errorMessage = "Invalid token";
+        if (error instanceof Error) {
+            if (error.message.includes('expired')) {
+                errorMessage = "Token has expired";
+            } else if (error.message.includes('signature')) {
+                errorMessage = "Invalid token signature";
+            } else if (error.message.includes('audience')) {
+                errorMessage = "Invalid token audience";
+            } else if (error.message.includes('issuer')) {
+                errorMessage = "Invalid token issuer";
+            }
+        }
+
         return c.json(
             {
-                error: "Unauthorized: Invalid token",
+                error: "Unauthorized: " + errorMessage,
                 details: error instanceof Error ? error.message : "Unknown error"
             },
             401

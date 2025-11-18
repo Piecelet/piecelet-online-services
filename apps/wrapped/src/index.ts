@@ -122,6 +122,13 @@ app.get("/", (c) => {
         <div class="endpoint">
             <div class="endpoint-info">
                 <span class="endpoint-method method-get">GET</span>
+                <code>/api/verify-jwt</code> - 验证 JWT Token 有效性
+            </div>
+            <button onclick="verifyJWT()">测试</button>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-info">
+                <span class="endpoint-method method-get">GET</span>
                 <code>/api/user</code> - 获取/同步用户信息
             </div>
             <button onclick="getUser()">测试</button>
@@ -255,6 +262,25 @@ app.get("/", (c) => {
             return token ? { 'Authorization': \`Bearer \${token}\` } : {};
         }
 
+        async function verifyJWT() {
+            try {
+                const response = await fetch('/api/verify-jwt', {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showStatus('api-status', '✅ JWT 验证通过！', true);
+                    showResponse('api-response', data);
+                } else {
+                    showStatus('api-status', '❌ JWT 验证失败: ' + (data.error || response.statusText), false);
+                    showResponse('api-response', data);
+                }
+            } catch (error) {
+                showStatus('api-status', '❌ 请求失败: ' + error.message, false);
+                showResponse('api-response', { error: error.message });
+            }
+        }
+
         async function getUser() {
             try {
                 const response = await fetch('/api/user', {
@@ -378,6 +404,29 @@ app.get("/health", (c) => {
         service: "piecelet-wrapped",
         status: "ok",
         timestamp: new Date().toISOString()
+    });
+});
+
+// JWT validation test endpoint
+app.get("/api/verify-jwt", jwtAuth, (c) => {
+    const user = c.get("user");
+    const now = Math.floor(Date.now() / 1000);
+
+    return c.json({
+        valid: true,
+        user: {
+            id: user.sub,
+            email: user.email,
+            name: user.name,
+            username: user.username,
+        },
+        token_info: {
+            issued_at: user.iat ? new Date(user.iat * 1000).toISOString() : null,
+            expires_at: user.exp ? new Date(user.exp * 1000).toISOString() : null,
+            time_until_expiry: user.exp ? `${user.exp - now} seconds` : null,
+            is_expired: user.exp ? user.exp < now : false,
+        },
+        verified_at: new Date().toISOString(),
     });
 });
 
