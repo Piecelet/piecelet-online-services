@@ -7,6 +7,7 @@ import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, ex
 import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe, revokeToken } from "./mastodon";
 import type { NeoDBMe, AuthResultData } from "./types";
 import { getClient, popState, saveState } from "./store";
+import { fetchNeoDBShelf, fetchNeoDBMarks, fetchNeoDBItem, fetchNeoDBStats } from "./client";
 
 function buildAccountId(me: NeoDBMe, instanceHost: string): string {
   if (me.url) return String(me.url);
@@ -26,6 +27,12 @@ export const neodbOAuthPlugin = {
           // ensure it's persisted and can be selected in outputs
           returned: true,
         },
+        realEmail: {
+          type: "string",
+          required: false,
+          // Store the original email address (without instance suffix)
+          returned: true,
+        },
       },
     },
     // Extend the Account model to track token revocation status
@@ -35,6 +42,12 @@ export const neodbOAuthPlugin = {
           type: "boolean",
           required: false,
           defaultValue: () => false,
+          returned: true,
+        },
+        instance: {
+          type: "string",
+          required: false,
+          // Store NeoDB instance domain (e.g., "neodb.social")
           returned: true,
         },
       },
@@ -234,13 +247,16 @@ export const neodbOAuthPlugin = {
           // Persist dedicated externalAcct field; do not misuse displayUsername
           userInfo: {
             id: String(accountId),
-            email: userInfo.email,
+            // email: Store with instance suffix to ensure uniqueness
+            email: `${userInfo.email}+${instanceURL.host}`,
             name: userInfo.displayName,
             image: userInfo.avatar,
             emailVerified: false,
             // Save NeoDB handle as username (per types.ts format)
             username: userInfo.username,
             externalAcct: userInfo.externalAcct,
+            // realEmail: Store original email without instance suffix
+            realEmail: userInfo.email,
           } as any,
           account: {
             providerId: "neodb",
@@ -250,6 +266,8 @@ export const neodbOAuthPlugin = {
             scope: tokens.scope,
             // Reset redacted flag when user logs in with new token
             isAccessTokenRedacted: false,
+            // instance: Store NeoDB instance domain
+            instance: instanceURL.host,
           } as any,
           callbackURL: parsed.callbackURL || "/",
           overrideUserInfo: false,
@@ -289,6 +307,235 @@ export const neodbOAuthPlugin = {
         const isRegister = Boolean((result as { isRegister?: boolean }).isRegister);
         const to = isRegister ? parsed.newUserURL || inferredCallback : inferredCallback;
         throw ctx.redirect(String(to));
+      },
+    ),
+    // NeoDB API Proxy Endpoints
+    neodbApiShelf: createAuthEndpoint(
+      "/neodb/api/shelf",
+      { method: "GET" },
+      async (ctx) => {
+        const session = await getSessionFromCtx(ctx);
+        if (!session?.user?.id) {
+          return ctx.json({ error: "Unauthorized" }, 401);
+        }
+
+        const adapter = ctx.context.adapter;
+        if (!adapter) {
+          return ctx.json({ error: "Database unavailable" }, 500);
+        }
+
+        try {
+          // Find user's NeoDB account
+          const account = await adapter.findOne<{
+            id: string;
+            userId: string;
+            providerId: string;
+            accessToken: string | null;
+            instance: string | null;
+            isAccessTokenRedacted: boolean | null;
+          }>({
+            model: "account",
+            where: [
+              { field: "userId", value: session.user.id },
+              { field: "providerId", value: "neodb" },
+            ],
+          });
+
+          if (!account) {
+            return ctx.json({ error: "NeoDB account not connected" }, 404);
+          }
+
+          if (!account.accessToken || account.isAccessTokenRedacted) {
+            return ctx.json({ error: "NeoDB access token not available" }, 401);
+          }
+
+          if (!account.instance) {
+            return ctx.json({ error: "NeoDB instance not found" }, 500);
+          }
+
+          const url = new URL(ctx.request!.url);
+          const category = url.searchParams.get("category") || undefined;
+
+          const data = await fetchNeoDBShelf(account.instance, account.accessToken, category);
+          return ctx.json(data);
+        } catch (error) {
+          console.error("[NeoDB API Proxy] Shelf fetch error:", error);
+          return ctx.json({ error: "Failed to fetch shelf data" }, 500);
+        }
+      },
+    ),
+    neodbApiMarks: createAuthEndpoint(
+      "/neodb/api/marks",
+      { method: "GET" },
+      async (ctx) => {
+        const session = await getSessionFromCtx(ctx);
+        if (!session?.user?.id) {
+          return ctx.json({ error: "Unauthorized" }, 401);
+        }
+
+        const adapter = ctx.context.adapter;
+        if (!adapter) {
+          return ctx.json({ error: "Database unavailable" }, 500);
+        }
+
+        try {
+          const account = await adapter.findOne<{
+            id: string;
+            userId: string;
+            providerId: string;
+            accessToken: string | null;
+            instance: string | null;
+            isAccessTokenRedacted: boolean | null;
+          }>({
+            model: "account",
+            where: [
+              { field: "userId", value: session.user.id },
+              { field: "providerId", value: "neodb" },
+            ],
+          });
+
+          if (!account) {
+            return ctx.json({ error: "NeoDB account not connected" }, 404);
+          }
+
+          if (!account.accessToken || account.isAccessTokenRedacted) {
+            return ctx.json({ error: "NeoDB access token not available" }, 401);
+          }
+
+          if (!account.instance) {
+            return ctx.json({ error: "NeoDB instance not found" }, 500);
+          }
+
+          const url = new URL(ctx.request!.url);
+          const filters: any = {};
+
+          const year = url.searchParams.get("year");
+          if (year) filters.year = parseInt(year);
+
+          const category = url.searchParams.get("category");
+          if (category) filters.category = category;
+
+          const limit = url.searchParams.get("limit");
+          if (limit) filters.limit = parseInt(limit);
+
+          const offset = url.searchParams.get("offset");
+          if (offset) filters.offset = parseInt(offset);
+
+          const data = await fetchNeoDBMarks(account.instance, account.accessToken, filters);
+          return ctx.json(data);
+        } catch (error) {
+          console.error("[NeoDB API Proxy] Marks fetch error:", error);
+          return ctx.json({ error: "Failed to fetch marks data" }, 500);
+        }
+      },
+    ),
+    neodbApiItem: createAuthEndpoint(
+      "/neodb/api/item/:id",
+      { method: "GET" },
+      async (ctx) => {
+        const session = await getSessionFromCtx(ctx);
+        if (!session?.user?.id) {
+          return ctx.json({ error: "Unauthorized" }, 401);
+        }
+
+        const adapter = ctx.context.adapter;
+        if (!adapter) {
+          return ctx.json({ error: "Database unavailable" }, 500);
+        }
+
+        try {
+          const account = await adapter.findOne<{
+            id: string;
+            userId: string;
+            providerId: string;
+            accessToken: string | null;
+            instance: string | null;
+            isAccessTokenRedacted: boolean | null;
+          }>({
+            model: "account",
+            where: [
+              { field: "userId", value: session.user.id },
+              { field: "providerId", value: "neodb" },
+            ],
+          });
+
+          if (!account) {
+            return ctx.json({ error: "NeoDB account not connected" }, 404);
+          }
+
+          if (!account.accessToken || account.isAccessTokenRedacted) {
+            return ctx.json({ error: "NeoDB access token not available" }, 401);
+          }
+
+          if (!account.instance) {
+            return ctx.json({ error: "NeoDB instance not found" }, 500);
+          }
+
+          // Get item ID from path parameter
+          const url = new URL(ctx.request!.url);
+          const pathParts = url.pathname.split("/");
+          const itemId = pathParts[pathParts.length - 1];
+
+          if (!itemId) {
+            return ctx.json({ error: "Item ID required" }, 400);
+          }
+
+          const data = await fetchNeoDBItem(account.instance, account.accessToken, itemId);
+          return ctx.json(data);
+        } catch (error) {
+          console.error("[NeoDB API Proxy] Item fetch error:", error);
+          return ctx.json({ error: "Failed to fetch item data" }, 500);
+        }
+      },
+    ),
+    neodbApiStats: createAuthEndpoint(
+      "/neodb/api/stats",
+      { method: "GET" },
+      async (ctx) => {
+        const session = await getSessionFromCtx(ctx);
+        if (!session?.user?.id) {
+          return ctx.json({ error: "Unauthorized" }, 401);
+        }
+
+        const adapter = ctx.context.adapter;
+        if (!adapter) {
+          return ctx.json({ error: "Database unavailable" }, 500);
+        }
+
+        try {
+          const account = await adapter.findOne<{
+            id: string;
+            userId: string;
+            providerId: string;
+            accessToken: string | null;
+            instance: string | null;
+            isAccessTokenRedacted: boolean | null;
+          }>({
+            model: "account",
+            where: [
+              { field: "userId", value: session.user.id },
+              { field: "providerId", value: "neodb" },
+            ],
+          });
+
+          if (!account) {
+            return ctx.json({ error: "NeoDB account not connected" }, 404);
+          }
+
+          if (!account.accessToken || account.isAccessTokenRedacted) {
+            return ctx.json({ error: "NeoDB access token not available" }, 401);
+          }
+
+          if (!account.instance) {
+            return ctx.json({ error: "NeoDB instance not found" }, 500);
+          }
+
+          const data = await fetchNeoDBStats(account.instance, account.accessToken);
+          return ctx.json(data);
+        } catch (error) {
+          console.error("[NeoDB API Proxy] Stats fetch error:", error);
+          return ctx.json({ error: "Failed to fetch stats data" }, 500);
+        }
       },
     ),
   },

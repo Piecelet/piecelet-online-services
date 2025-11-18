@@ -17,6 +17,7 @@ export const users = sqliteTable("users", {
     username: text("username").unique(),
     displayUsername: text("display_username"),
     externalAcct: text("external_acct"),
+    realEmail: text("real_email"),
 });
 
 export const sessions = sqliteTable("sessions", {
@@ -71,6 +72,7 @@ export const accounts = sqliteTable("accounts", {
     isAccessTokenRedacted: integer("is_access_token_redacted", {
         mode: "boolean",
     }).$defaultFn(() => false),
+    instance: text("instance"),
 });
 
 export const verifications = sqliteTable("verifications", {

@@ -6,6 +6,7 @@ import debug from "./routes/debug";
 import auth from "./routes/auth";
 import user from "./routes/user";
 import wrapped from "./routes/wrapped";
+import neodb from "./routes/neodb";
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: AuthContext }>();
 
@@ -44,5 +45,6 @@ app.route("/", debug);
 app.route("/", auth);
 app.route("/", user);
 app.route("/", wrapped);
+app.route("/", neodb);
 
 export default app;
