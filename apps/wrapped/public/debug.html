@@ -232,24 +232,12 @@
         <div id="login-response" class="response" style="display: none;"></div>
     </div>
 
-    <!-- 步骤 2: 获取 JWT Cookie -->
+    <!-- 步骤 2: 测试 Wrapped API -->
     <div class="section">
-        <h2>步骤 2: 获取 JWT Cookie</h2>
-        <div id="jwt-status" class="status"></div>
-
+        <h2>步骤 2: 测试 Wrapped API</h2>
         <p style="margin-bottom: 15px; color: #57606a;">
-            将 JWT token 设置到 cookie 中，后续请求会自动携带
+            Session cookie 会自动携带，无需手动管理
         </p>
-
-        <button onclick="getJWTCookie()">🍪 获取 JWT Cookie</button>
-        <button class="secondary" onclick="showCookies()">👀 查看 Cookies</button>
-
-        <div id="jwt-response" class="response" style="display: none;"></div>
-    </div>
-
-    <!-- 步骤 3: 测试 Wrapped API -->
-    <div class="section">
-        <h2>步骤 3: 测试 Wrapped API</h2>
         <div id="api-status" class="status"></div>
 
         <div class="endpoint">
@@ -364,35 +352,6 @@
             if (instance) {
                 window.location.href = `${ACCOUNT_URL}/api/auth/neodb/start?instance=${encodeURIComponent(instance)}&callbackURL=${encodeURIComponent(callbackURL)}`;
             }
-        }
-
-        async function getJWTCookie() {
-            try {
-                const response = await fetch(`${ACCOUNT_URL}/api/auth/jwt-cookie`, {
-                    credentials: 'include'
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showStatus('jwt-status', '✅ JWT Cookie 设置成功！', true);
-                    showResponse('jwt-response', data);
-                } else {
-                    showStatus('jwt-status', '❌ 获取失败: ' + (data.error || response.statusText), false);
-                    showResponse('jwt-response', data);
-                }
-            } catch (error) {
-                showStatus('jwt-status', '❌ 请求失败: ' + error.message, false);
-                showResponse('jwt-response', { error: error.message });
-            }
-        }
-
-        function showCookies() {
-            const cookies = document.cookie.split(';').map(c => {
-                const [key, value] = c.trim().split('=');
-                return { key, value: value?.substring(0, 50) + (value?.length > 50 ? '...' : '') };
-            });
-            showResponse('jwt-response', { cookies });
         }
 
         async function getUser() {

@@ -42,18 +42,21 @@ export function getAllowedOrigins(): readonly string[] {
     // In dev, include localhost origins for Better Auth
     // In prod, only production origins
     return isDevelopment()
-        ? [...PRODUCTION_ORIGINS, "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:4173", "http://localhost:8787", "http://127.0.0.1:5173"]
+        ? [...PRODUCTION_ORIGINS, "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:4173", "http://localhost:8787", "http://localhost:8788", "http://127.0.0.1:5173"]
         : PRODUCTION_ORIGINS;
 }
 
 export function getAllowedDomains(): readonly string[] {
     // In dev, include localhost domains for cookie setting
     // In prod, only production domains
-    return getAllowedOrigins().map(origin => {
+    const domains = getAllowedOrigins().map(origin => {
         // Extract domain from origin
         const url = new URL(origin);
         return url.hostname;
     });
+
+    // Remove duplicates (e.g., localhost appears multiple times in dev)
+    return [...new Set(domains)];
 }
 
 /**
