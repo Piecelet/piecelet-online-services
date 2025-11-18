@@ -7,7 +7,7 @@ import { schema, wrappedUsers } from "../db";
 
 const user = new Hono<{ Bindings: CloudflareBindings; Variables: AuthContext }>();
 
-// Get or sync user information from JWT
+// Get or sync user information from session
 user.get("/api/user", jwtAuth, async (c) => {
     const user = c.get("user");
     const db = drizzle(c.env.WRAPPED_DB, { schema });
@@ -17,7 +17,7 @@ user.get("/api/user", jwtAuth, async (c) => {
         const existingUser = await db
             .select()
             .from(wrappedUsers)
-            .where(eq(wrappedUsers.id, user.sub))
+            .where(eq(wrappedUsers.id, user.id))
             .get();
 
         if (existingUser) {
@@ -30,7 +30,7 @@ user.get("/api/user", jwtAuth, async (c) => {
                     username: user.username || existingUser.username,
                     updatedAt: new Date(),
                 })
-                .where(eq(wrappedUsers.id, user.sub))
+                .where(eq(wrappedUsers.id, user.id))
                 .returning()
                 .get();
 
@@ -40,10 +40,10 @@ user.get("/api/user", jwtAuth, async (c) => {
             const newUser = await db
                 .insert(wrappedUsers)
                 .values({
-                    id: user.sub,
+                    id: user.id,
                     email: user.email || "",
-                    name: user.name,
-                    username: user.username,
+                    name: user.name || "",
+                    username: user.username || null,
                 })
                 .returning()
                 .get();
