@@ -357,8 +357,9 @@ app.get("/protected", async c => {
     }
 });
 
-// Get JWT and set it in cookie for cross-service authentication
-app.get("/api/auth/jwt-cookie", async c => {
+// Get JWT token for cross-service authentication
+// Returns token as JSON (client needs to send it to target service)
+app.get("/api/auth/jwt-token", async c => {
     const auth = c.get("auth");
 
     try {
@@ -380,28 +381,20 @@ app.get("/api/auth/jwt-cookie", async c => {
             return c.json({ error: "Failed to generate JWT token" }, 500);
         }
 
-        // Set JWT in cookie
-        // Cookie settings for cross-domain usage
-        const cookieOptions = [
-            `auth_jwt=${tokenResponse.token}`,
-            'Path=/',
-            'HttpOnly',
-            'SameSite=None',
-            'Secure',
-            'Max-Age=604800', // 7 days
-        ];
-
-        c.header('Set-Cookie', cookieOptions.join('; '));
-
         return c.json({
             success: true,
-            message: "JWT token set in cookie",
             token: tokenResponse.token,
+            user: {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.name,
+                username: session.user.username,
+            },
         });
     } catch (error) {
-        console.error("Error setting JWT cookie:", error);
+        console.error("Error getting JWT token:", error);
         return c.json(
-            { error: "Failed to set JWT cookie" },
+            { error: "Failed to get JWT token" },
             500
         );
     }

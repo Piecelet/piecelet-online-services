@@ -104,10 +104,12 @@ app.get("/", (c) => {
     </div>
 
     <div class="section">
-        <h2>步骤 2: 获取 JWT Cookie</h2>
+        <h2>步骤 2: 获取并设置 JWT Cookie</h2>
         <div id="jwt-status" class="status"></div>
-        <p style="margin-bottom: 15px; color: #57606a;">将 JWT token 设置到 cookie 中，后续请求会自动携带</p>
-        <button onclick="getJWTCookie()">🍪 获取 JWT Cookie</button>
+        <p style="margin-bottom: 15px; color: #57606a;">
+            从账户服务获取 JWT token，并设置到当前域名的 cookie 中，后续请求会自动携带
+        </p>
+        <button onclick="getJWTCookie()">🍪 获取并设置 JWT Cookie</button>
         <button class="secondary" onclick="showCookies()">👀 查看 Cookies</button>
         <div id="jwt-response" class="response" style="display: none;"></div>
     </div>
@@ -204,14 +206,34 @@ app.get("/", (c) => {
 
         async function getJWTCookie() {
             try {
-                const response = await fetch(\`\${ACCOUNT_URL}/api/auth/jwt-cookie\`, { credentials: 'include' });
-                const data = await response.json();
-                if (response.ok) {
+                // Step 1: Get JWT token from account service
+                const tokenResponse = await fetch(\`\${ACCOUNT_URL}/api/auth/jwt-token\`, { credentials: 'include' });
+                const tokenData = await tokenResponse.json();
+
+                if (!tokenResponse.ok) {
+                    showStatus('jwt-status', '❌ 获取 JWT 失败: ' + (tokenData.error || tokenResponse.statusText), false);
+                    showResponse('jwt-response', tokenData);
+                    return;
+                }
+
+                // Step 2: Set JWT cookie in wrapped service domain
+                const setCookieResponse = await fetch(\`\${WRAPPED_URL}/api/set-jwt-cookie\`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: tokenData.token })
+                });
+                const setCookieData = await setCookieResponse.json();
+
+                if (setCookieResponse.ok) {
                     showStatus('jwt-status', '✅ JWT Cookie 设置成功！', true);
-                    showResponse('jwt-response', data);
+                    showResponse('jwt-response', {
+                        step1_get_token: tokenData,
+                        step2_set_cookie: setCookieData
+                    });
                 } else {
-                    showStatus('jwt-status', '❌ 获取失败: ' + (data.error || response.statusText), false);
-                    showResponse('jwt-response', data);
+                    showStatus('jwt-status', '❌ 设置 Cookie 失败: ' + (setCookieData.error || setCookieResponse.statusText), false);
+                    showResponse('jwt-response', { tokenData, setCookieData });
                 }
             } catch (error) {
                 showStatus('jwt-status', '❌ 请求失败: ' + error.message, false);
@@ -348,6 +370,41 @@ app.get("/health", (c) => {
         status: "ok",
         timestamp: new Date().toISOString()
     });
+});
+
+// Set JWT cookie endpoint
+// This allows the client to set JWT token in wrapped service's cookie
+app.post("/api/set-jwt-cookie", async (c) => {
+    try {
+        const body = await c.req.json();
+        const { token } = body;
+
+        if (!token) {
+            return c.json({ error: "Token is required" }, 400);
+        }
+
+        // Set JWT in cookie for this domain
+        const cookieOptions = [
+            `auth_jwt=${token}`,
+            'Path=/',
+            'HttpOnly',
+            'SameSite=Lax',
+            'Max-Age=604800', // 7 days
+        ];
+
+        c.header('Set-Cookie', cookieOptions.join('; '));
+
+        return c.json({
+            success: true,
+            message: "JWT cookie set successfully"
+        });
+    } catch (error) {
+        console.error("Error setting JWT cookie:", error);
+        return c.json(
+            { error: "Failed to set JWT cookie" },
+            500
+        );
+    }
 });
 
 // Get or sync user information from JWT
