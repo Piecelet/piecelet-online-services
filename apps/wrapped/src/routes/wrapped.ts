@@ -274,7 +274,7 @@ wrapped.post("/api/wrapped/2025/marks/collect/next/:taskId", jwtAuth, async (c) 
         const cookieHeader = c.req.header("cookie") || "";
 
         // Fetch current page from NeoDB
-        const targetUrl = `${apiUrl}/api/auth/neodb/api/me/shelf/${currentShelfType}?page=${currentPage}`;
+        const targetUrl = `${apiUrl}/api/auth/neodb/api/me/shelf/${currentShelfType}?page=${currentPage}&pageSize=50`;
         const response = await fetch(targetUrl, {
             headers: {
                 "Cookie": cookieHeader,
