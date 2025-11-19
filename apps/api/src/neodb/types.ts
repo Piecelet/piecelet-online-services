@@ -1,9 +1,15 @@
+import type { Adapter } from "better-auth";
+
 export interface NeoDBClient {
   instance: string;
   client_id: string;
   client_secret: string;
   redirect_uri: string;
 }
+
+// export type NeoDBWhere = Where;
+
+export type NeoDBAdapter = Adapter;
 
 export interface NeoDBState {
   state: string;

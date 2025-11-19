@@ -1,6 +1,5 @@
-import type { NeoDBClient, OAuthTokenResponse, NeoDBMe } from "@/neodb/types";
+import type { NeoDBAdapter, NeoDBClient, OAuthTokenResponse, NeoDBMe } from "@/neodb/types";
 import { saveClient, getClient } from "@/neodb/store";
-import type { Adapter } from "better-auth";
 import { parseNeodbMe } from "@/neodb/util";
 
 export async function registerMastodonApp(base: URL, redirectUri: string): Promise<NeoDBClient> {
@@ -39,7 +38,7 @@ export async function registerMastodonApp(base: URL, redirectUri: string): Promi
   };
 }
 
-export async function getOrCreateClient(adapter: Adapter, base: URL, redirectUri: string): Promise<NeoDBClient> {
+export async function getOrCreateClient(adapter: NeoDBAdapter, base: URL, redirectUri: string): Promise<NeoDBClient> {
   const existing = await getClient(adapter, base.origin);
   if (existing && existing.redirect_uri === redirectUri) return existing;
   const c = await registerMastodonApp(base, redirectUri);

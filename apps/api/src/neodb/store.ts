@@ -1,7 +1,6 @@
-import type { NeoDBClient } from "@/neodb/types";
-import type { Adapter } from "better-auth";
+import type { NeoDBAdapter, NeoDBClient } from "@/neodb/types";
 
-export async function getClient(adapter: Adapter, instance: string): Promise<NeoDBClient | null> {
+export async function getClient(adapter: NeoDBAdapter, instance: string): Promise<NeoDBClient | null> {
   const result = await adapter.findOne<{
     id: string;
     instance: string;
@@ -25,7 +24,7 @@ export async function getClient(adapter: Adapter, instance: string): Promise<Neo
   };
 }
 
-export async function saveClient(adapter: Adapter, client: NeoDBClient): Promise<void> {
+export async function saveClient(adapter: NeoDBAdapter, client: NeoDBClient): Promise<void> {
   // Try to find existing client
   const existing = await adapter.findOne({
     model: "neodbClient",
@@ -62,7 +61,7 @@ export async function saveClient(adapter: Adapter, client: NeoDBClient): Promise
 }
 
 export async function saveState(
-  adapter: Adapter,
+  adapter: NeoDBAdapter,
   state: string,
   instance: string,
   callbackURL?: string | null,
@@ -101,7 +100,7 @@ export async function saveState(
 }
 
 export async function popState(
-  adapter: Adapter,
+  adapter: NeoDBAdapter,
   state: string,
 ): Promise<{ instance: string; callbackUrl: string | null } | null> {
   const result = await adapter.findOne<{
