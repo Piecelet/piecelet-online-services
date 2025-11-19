@@ -263,7 +263,7 @@ marks.post("/collect/next/:taskId", jwtAuth, async (c) => {
             const currentIndex = SHELF_TYPES.indexOf(currentShelfType);
             if (currentIndex < SHELF_TYPES.length - 1) {
                 // Move to next shelf type
-                nextShelfType = SHELF_TYPES[currentIndex + 1];
+                nextShelfType = SHELF_TYPES[currentIndex + 1] as ShelfType;
                 nextPage = 1;
             } else {
                 // All shelves completed
@@ -276,7 +276,7 @@ marks.post("/collect/next/:taskId", jwtAuth, async (c) => {
             // Current shelf finished, move to next shelf type
             const currentIndex = SHELF_TYPES.indexOf(currentShelfType);
             if (currentIndex < SHELF_TYPES.length - 1) {
-                nextShelfType = SHELF_TYPES[currentIndex + 1];
+                nextShelfType = SHELF_TYPES[currentIndex + 1] as ShelfType;
                 nextPage = 1;
             } else {
                 // All shelves completed
