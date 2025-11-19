@@ -4,10 +4,10 @@ import { withCloudflare } from "better-auth-cloudflare";
 import { anonymous, jwt } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/d1";
-import { schema } from "../db";
-import type { CloudflareBindings } from "../env";
-import { neodbOAuthPlugin } from "../neodb/plugin";
-import { getAllowedDomains, getAllowedOrigins, getBaseURL } from "../config/origins";
+import { schema } from "@/db";
+import type { CloudflareBindings } from "@/env";
+import { neodbOAuthPlugin } from "@/neodb/plugin";
+import { getAllowedDomains, getAllowedOrigins, getBaseURL } from "@/config/origins";
 import { username } from "better-auth/plugins";
 
 // Single auth configuration that handles both CLI and runtime scenarios
@@ -23,12 +23,12 @@ function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) 
                 cf: cf || {},
                 d1: env
                     ? {
-                          db,
-                          options: {
-                              usePlural: true,
-                              debugLogs: true,
-                          },
-                      }
+                        db,
+                        options: {
+                            usePlural: true,
+                            debugLogs: true,
+                        },
+                    }
                     : undefined,
                 kv: env?.ACCOUNT_KV,
             },
@@ -54,12 +54,12 @@ function createAuth(env?: CloudflareBindings, cf?: IncomingRequestCfProperties) 
         ...(env
             ? {}
             : {
-                  database: drizzleAdapter({} as D1Database, {
-                      provider: "sqlite",
-                      usePlural: true,
-                      debugLogs: true
-                  }),
-              }),
+                database: drizzleAdapter({} as D1Database, {
+                    provider: "sqlite",
+                    usePlural: true,
+                    debugLogs: true
+                }),
+            }),
     });
 }
 

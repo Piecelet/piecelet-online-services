@@ -2,7 +2,7 @@
  * Test script for the stale token revocation cron job
  * Run with: npx tsx src/cron/test-cron.ts
  */
-import { revokeStaleTokens } from "./revoke-stale-tokens";
+import { revokeStaleTokens } from "@/cron/revoke-stale-tokens";
 
 async function testCron() {
   console.log("Testing cron job locally...\n");

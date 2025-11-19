@@ -12,8 +12,8 @@
 import type { Context } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import { eq, and } from "drizzle-orm";
-import { schema, accounts } from "../db";
-import type { CloudflareBindings } from "../env";
+import { schema, accounts } from "@/db";
+import type { CloudflareBindings } from "@/env";
 
 // Security: Whitelist of allowed NeoDB instances
 const ALLOWED_INSTANCES = [

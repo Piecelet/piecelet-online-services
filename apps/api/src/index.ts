@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createAuth } from "./auth";
-import type { CloudflareBindings } from "./env";
-import { getAllowedOrigin } from "./config/origins";
-import { revokeStaleTokens } from "./cron/revoke-stale-tokens";
-import { handleNeoDBApiProxy } from "./neodb/proxy";
+import { createAuth } from "@/auth";
+import type { CloudflareBindings } from "@/env";
+import { getAllowedOrigin } from "@/config/origins";
+import { revokeStaleTokens } from "@/cron/revoke-stale-tokens";
+import { handleNeoDBApiProxy } from "@/neodb/proxy";
 
 type Variables = {
     auth: ReturnType<typeof createAuth>;

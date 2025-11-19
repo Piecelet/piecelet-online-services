@@ -1,7 +1,7 @@
-import type { NeoDBClient, OAuthTokenResponse, NeoDBMe } from "./types";
-import { saveClient, getClient } from "./store";
+import type { NeoDBClient, OAuthTokenResponse, NeoDBMe } from "@/neodb/types";
+import { saveClient, getClient } from "@/neodb/store";
 import type { Adapter } from "better-auth";
-import { parseNeodbMe } from "./util";
+import { parseNeodbMe } from "@/neodb/util";
 
 export async function registerMastodonApp(base: URL, redirectUri: string): Promise<NeoDBClient> {
   const body = new URLSearchParams();

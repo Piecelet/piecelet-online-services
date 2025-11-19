@@ -1,4 +1,4 @@
-import type { NeoDBClient } from "./types";
+import type { NeoDBClient } from "@/neodb/types";
 import type { Adapter } from "better-auth";
 
 export async function getClient(adapter: Adapter, instance: string): Promise<NeoDBClient | null> {

@@ -3,11 +3,11 @@ import { generateState, parseState, handleOAuthUserInfo } from "better-auth/oaut
 import { setSessionCookie } from "better-auth/cookies";
 import type { BetterAuthPlugin } from "better-auth";
 
-import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, extractNeoDBUserInfo } from "./util";
-import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe, revokeToken } from "./mastodon";
-import type { NeoDBMe, AuthResultData } from "./types";
-import { getClient, popState, saveState } from "./store";
-import { fetchNeoDBShelf, fetchNeoDBMarks, fetchNeoDBItem, fetchNeoDBStats } from "./client";
+import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, extractNeoDBUserInfo } from "@/neodb/util";
+import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe, revokeToken } from "@/neodb/mastodon";
+import type { NeoDBMe, AuthResultData } from "@/neodb/types";
+import { getClient, popState, saveState } from "@/neodb/store";
+import { fetchNeoDBShelf, fetchNeoDBMarks, fetchNeoDBItem, fetchNeoDBStats } from "@/neodb/client";
 
 function buildAccountId(me: NeoDBMe, instanceHost: string): string {
   if (me.url) return String(me.url);

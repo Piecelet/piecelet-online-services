@@ -1,4 +1,4 @@
-import type { NeoDBMe, NeoDBUserInfo } from "./types";
+import type { NeoDBMe, NeoDBUserInfo } from "@/neodb/types";
 
 export const nowIso = (): string => new Date().toISOString();
 
