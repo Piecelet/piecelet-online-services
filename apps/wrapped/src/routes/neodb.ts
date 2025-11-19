@@ -48,6 +48,12 @@ neodb.all("/api/neodb/*", jwtAuth, async (c) => {
       Authorization: c.req.header("Authorization") || "",
     };
 
+    // Forward Cookie header (required for session authentication)
+    const cookie = c.req.header("Cookie");
+    if (cookie) {
+      headers["Cookie"] = cookie;
+    }
+
     // Copy Content-Type if present
     const contentType = c.req.header("Content-Type");
     if (contentType) {
