@@ -600,7 +600,8 @@ debug.get("/", (c) => {
 
                 if (response.ok) {
                     if (data.done) {
-                        showStatus('marks-status', '🎉 收集完成！共收集 ' + data.progress.collectedCount + ' 条数据', true);
+                        const earlyStopMsg = data.stoppedEarly ? '（遇到2024年数据，提前结束）' : '';
+                        showStatus('marks-status', '🎉 收集完成！共收集 ' + data.progress.collectedCount + ' 条数据 ' + earlyStopMsg, true);
                         document.getElementById('finalize-btn').disabled = false;
                         document.getElementById('collect-next-btn').disabled = true;
                     } else {
@@ -707,6 +708,7 @@ debug.get("/", (c) => {
                 // Step 2: Keep collecting until done
                 let done = false;
                 let batchCount = 0;
+                let stoppedEarly = false;
 
                 while (!done) {
                     batchCount++;
@@ -724,6 +726,7 @@ debug.get("/", (c) => {
                     }
 
                     done = nextData.done;
+                    stoppedEarly = nextData.stoppedEarly || false;
 
                     if (nextData.progress) {
                         const percentage = nextData.progress.percentage || 0;
@@ -751,8 +754,9 @@ debug.get("/", (c) => {
                 }
 
                 progressBar.style.width = '100%';
-                progressText.textContent = \`🎉 完成！共收集 \${finalData.totalCollected} 条 2025 年的标记数据\`;
-                showStatus('marks-status', \`🎉 自动收集完成！共 \${finalData.totalCollected} 条数据\`, true);
+                const stoppedEarlyMsg = stoppedEarly ? '（遇到2024年数据，提前结束）' : '';
+                progressText.textContent = \`🎉 完成！共收集 \${finalData.totalCollected} 条 2025 年的标记数据 \${stoppedEarlyMsg}\`;
+                showStatus('marks-status', \`🎉 自动收集完成！共 \${finalData.totalCollected} 条数据 \${stoppedEarlyMsg}\`, true);
                 showResponse('marks-response', finalData);
 
                 currentTaskId = null;

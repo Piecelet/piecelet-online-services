@@ -322,11 +322,23 @@ wrapped.post("/api/wrapped/2025/marks/collect/next/:taskId", jwtAuth, async (c) 
         }
 
         // Filter and store marks from 2025
+        // Stop if we encounter a 2024 mark (since marks are sorted by time descending)
         let collectedCount = 0;
+        let shouldStop = false;
+
         for (const mark of data.data) {
             const createdDate = new Date(mark.created_time);
-            if (createdDate.getFullYear() !== 2025) {
-                continue; // Skip non-2025 marks
+            const year = createdDate.getFullYear();
+
+            // If we encounter a 2024 mark, stop collecting (all subsequent marks will be older)
+            if (year < 2025) {
+                shouldStop = true;
+                break;
+            }
+
+            // Skip future marks (shouldn't happen, but just in case)
+            if (year > 2025) {
+                continue;
             }
 
             // Store item (shared table)
@@ -384,7 +396,10 @@ wrapped.post("/api/wrapped/2025/marks/collect/next/:taskId", jwtAuth, async (c) 
         let nextPage = currentPage;
         let isDone = false;
 
-        if (currentPage < data.pages) {
+        // If we encountered a 2024 mark, stop collecting
+        if (shouldStop) {
+            isDone = true;
+        } else if (currentPage < data.pages) {
             // More pages in current shelf
             nextPage = currentPage + 1;
         } else {
@@ -448,6 +463,7 @@ wrapped.post("/api/wrapped/2025/marks/collect/next/:taskId", jwtAuth, async (c) 
 
         return c.json({
             done: isDone,
+            stoppedEarly: shouldStop, // Indicates we stopped because we found 2024 data
             progress: {
                 percentage,
                 currentShelf: currentShelfType,
