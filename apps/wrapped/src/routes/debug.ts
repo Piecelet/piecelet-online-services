@@ -600,12 +600,12 @@ debug.get("/", (c) => {
 
                 if (response.ok) {
                     if (data.done) {
-                        const earlyStopMsg = data.stoppedEarly ? '（遇到2024年数据，提前结束）' : '';
-                        showStatus('marks-status', '🎉 收集完成！共收集 ' + data.progress.collectedCount + ' 条数据 ' + earlyStopMsg, true);
+                        showStatus('marks-status', '🎉 收集完成！共收集 ' + data.progress.collectedCount + ' 条 2025 年数据', true);
                         document.getElementById('finalize-btn').disabled = false;
                         document.getElementById('collect-next-btn').disabled = true;
                     } else {
-                        showStatus('marks-status', \`✅ 进度: \${data.progress.percentage}% | \${data.progress.currentShelf} 第 \${data.progress.currentPage} 页 | 已收集: \${data.progress.collectedCount} 条\`, true);
+                        const shelfMsg = data.skippedToNextShelf ? ' (' + data.progress.currentShelf + ' 遇到2024年数据，跳转中)' : '';
+                        showStatus('marks-status', '✅ 进度: ' + data.progress.percentage + '% | ' + data.progress.currentShelf + ' 第 ' + data.progress.currentPage + ' 页 | 已收集: ' + data.progress.collectedCount + ' 条' + shelfMsg, true);
                     }
                     showResponse('marks-response', data);
                 } else {
@@ -708,7 +708,6 @@ debug.get("/", (c) => {
                 // Step 2: Keep collecting until done
                 let done = false;
                 let batchCount = 0;
-                let stoppedEarly = false;
 
                 while (!done) {
                     batchCount++;
@@ -726,12 +725,12 @@ debug.get("/", (c) => {
                     }
 
                     done = nextData.done;
-                    stoppedEarly = nextData.stoppedEarly || false;
 
                     if (nextData.progress) {
                         const percentage = nextData.progress.percentage || 0;
                         progressBar.style.width = percentage + '%';
-                        progressText.textContent = \`进度: \${percentage}% | \${nextData.progress.currentShelf} 第 \${nextData.progress.currentPage} 页 | 已收集: \${nextData.progress.collectedCount} 条 | 本批: \${nextData.progress.batchCollected} 条\`;
+                        const skipMsg = nextData.skippedToNextShelf ? ' (遇到2024年数据，跳到下一shelf)' : '';
+                        progressText.textContent = '进度: ' + percentage + '% | ' + nextData.progress.currentShelf + ' 第 ' + nextData.progress.currentPage + ' 页 | 已收集: ' + nextData.progress.collectedCount + ' 条 | 本批: ' + nextData.progress.batchCollected + ' 条' + skipMsg;
                     }
 
                     showResponse('marks-response', nextData);
@@ -754,9 +753,8 @@ debug.get("/", (c) => {
                 }
 
                 progressBar.style.width = '100%';
-                const stoppedEarlyMsg = stoppedEarly ? '（遇到2024年数据，提前结束）' : '';
-                progressText.textContent = \`🎉 完成！共收集 \${finalData.totalCollected} 条 2025 年的标记数据 \${stoppedEarlyMsg}\`;
-                showStatus('marks-status', \`🎉 自动收集完成！共 \${finalData.totalCollected} 条数据 \${stoppedEarlyMsg}\`, true);
+                progressText.textContent = '🎉 完成！共收集 ' + finalData.totalCollected + ' 条 2025 年的标记数据';
+                showStatus('marks-status', '🎉 自动收集完成！共 ' + finalData.totalCollected + ' 条 2025 年数据', true);
                 showResponse('marks-response', finalData);
 
                 currentTaskId = null;

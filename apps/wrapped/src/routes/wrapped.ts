@@ -396,14 +396,22 @@ wrapped.post("/api/wrapped/2025/marks/collect/next/:taskId", jwtAuth, async (c) 
         let nextPage = currentPage;
         let isDone = false;
 
-        // If we encountered a 2024 mark, stop collecting
+        // If we encountered a 2024 mark, skip to next shelf type
         if (shouldStop) {
-            isDone = true;
+            const currentIndex = SHELF_TYPES.indexOf(currentShelfType);
+            if (currentIndex < SHELF_TYPES.length - 1) {
+                // Move to next shelf type
+                nextShelfType = SHELF_TYPES[currentIndex + 1];
+                nextPage = 1;
+            } else {
+                // All shelves completed
+                isDone = true;
+            }
         } else if (currentPage < data.pages) {
             // More pages in current shelf
             nextPage = currentPage + 1;
         } else {
-            // Move to next shelf type
+            // Current shelf finished, move to next shelf type
             const currentIndex = SHELF_TYPES.indexOf(currentShelfType);
             if (currentIndex < SHELF_TYPES.length - 1) {
                 nextShelfType = SHELF_TYPES[currentIndex + 1];
@@ -463,7 +471,7 @@ wrapped.post("/api/wrapped/2025/marks/collect/next/:taskId", jwtAuth, async (c) 
 
         return c.json({
             done: isDone,
-            stoppedEarly: shouldStop, // Indicates we stopped because we found 2024 data
+            skippedToNextShelf: shouldStop, // Indicates we skipped to next shelf because we found 2024 data
             progress: {
                 percentage,
                 currentShelf: currentShelfType,
