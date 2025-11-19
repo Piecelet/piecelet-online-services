@@ -4,9 +4,7 @@ import { createAuth } from "./auth";
 import type { CloudflareBindings } from "./env";
 import { getAllowedOrigin } from "./config/origins";
 import { revokeStaleTokens } from "./cron/revoke-stale-tokens";
-import { drizzle } from "drizzle-orm/d1";
-import { eq, and } from "drizzle-orm";
-import { schema, accounts } from "./db";
+import { handleNeoDBApiProxy } from "./neodb/proxy";
 
 type Variables = {
     auth: ReturnType<typeof createAuth>;
@@ -35,102 +33,8 @@ app.use("*", async (c, next) => {
 });
 
 // NeoDB API Proxy - Must be before Better Auth handler
-app.all("/api/auth/neodb/api/*", async c => {
-    const auth = c.get("auth");
-
-    // Get session
-    const session = await auth.api.getSession({
-        headers: c.req.raw.headers,
-    });
-
-    if (!session?.user?.id) {
-        return c.json({ error: "Unauthorized" }, 401);
-    }
-
-    // Use drizzle to query database directly
-    const db = drizzle(c.env.ACCOUNT_DATABASE, { schema });
-
-    // Extract the path after /api/auth/neodb/api
-    const requestUrl = new URL(c.req.url);
-    const neodbPath = requestUrl.pathname.replace(/^\/api\/auth\/neodb\/api/, "/api");
-
-    try {
-        // Find user's NeoDB account
-        const account = await db
-            .select()
-            .from(accounts)
-            .where(and(
-                eq(accounts.userId, session.user.id),
-                eq(accounts.providerId, "neodb")
-            ))
-            .get();
-
-        if (!account) {
-            console.error("[NeoDB API Proxy] No NeoDB account found for user:", session.user.id);
-            return c.json({ error: "NeoDB account not connected" }, 404);
-        }
-
-        if (!account.accessToken || account.isAccessTokenRedacted) {
-            console.error("[NeoDB API Proxy] Access token not available for user:", session.user.id);
-            return c.json({ error: "NeoDB access token not available" }, 401);
-        }
-
-        if (!account.instance) {
-            console.error("[NeoDB API Proxy] Instance not found for account:", account.id);
-            return c.json({ error: "NeoDB instance not found" }, 500);
-        }
-
-        console.log("[NeoDB API Proxy] Proxying request to:", `https://${account.instance}${neodbPath}`);
-
-        // Build target URL: https://{instance}/api/*
-        const targetUrl = new URL(neodbPath, `https://${account.instance}`);
-
-        // Copy query parameters
-        requestUrl.searchParams.forEach((value, key) => {
-            targetUrl.searchParams.set(key, value);
-        });
-
-        // Forward the request to NeoDB
-        const headers: Record<string, string> = {
-            "Authorization": `Bearer ${account.accessToken}`,
-            "Accept": "application/json",
-        };
-
-        // Copy Content-Type if present (for POST/PUT requests)
-        const contentType = c.req.header("content-type");
-        if (contentType) {
-            headers["Content-Type"] = contentType;
-        }
-
-        const fetchOptions: RequestInit = {
-            method: c.req.method,
-            headers,
-        };
-
-        // Forward request body for POST/PUT/PATCH
-        if (["POST", "PUT", "PATCH"].includes(c.req.method)) {
-            fetchOptions.body = await c.req.text();
-        }
-
-        const response = await fetch(targetUrl.toString(), fetchOptions);
-
-        // Forward response status and body
-        const responseData = await response.text();
-
-        return new Response(responseData, {
-            status: response.status,
-            headers: {
-                "Content-Type": response.headers.get("Content-Type") || "application/json",
-            },
-        });
-    } catch (error) {
-        console.error("[NeoDB API Proxy] Request error:", error);
-        return c.json({
-            error: "Failed to proxy request to NeoDB",
-            details: error instanceof Error ? error.message : String(error)
-        }, 500);
-    }
-});
+// Handles all requests to /api/auth/neodb/api/* and proxies them to user's NeoDB instance
+app.all("/api/auth/neodb/api/*", handleNeoDBApiProxy);
 
 // Handle all auth routes
 app.all("/api/auth/*", async c => {
