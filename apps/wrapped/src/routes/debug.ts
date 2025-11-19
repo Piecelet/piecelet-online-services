@@ -295,6 +295,60 @@ debug.get("/", (c) => {
         <div id="api-response" class="response" style="display: none;"></div>
     </div>
 
+    <!-- 步骤 3: 2025 Marks 收集 -->
+    <div class="section">
+        <h2>步骤 3: 2025 Marks 收集</h2>
+        <p style="margin-bottom: 15px; color: #57606a;">
+            从 NeoDB 收集 2025 年的所有标记数据（需要先登录 NeoDB）
+        </p>
+        <div id="marks-status" class="status"></div>
+
+        <div class="endpoint">
+            <div class="endpoint-info">
+                <span class="endpoint-method method-post">POST</span>
+                <code>/api/wrapped/2025/marks/collect/start</code> - 开始收集
+            </div>
+            <button onclick="startMarksCollection()">开始</button>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-info">
+                <span class="endpoint-method method-post">POST</span>
+                <code>/api/wrapped/2025/marks/collect/next/:taskId</code> - 收集下一批
+            </div>
+            <button onclick="collectNext()" id="collect-next-btn" disabled>下一批</button>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-info">
+                <span class="endpoint-method method-get">GET</span>
+                <code>/api/wrapped/2025/marks/collect/status/:taskId</code> - 查询状态
+            </div>
+            <button onclick="checkStatus()" id="check-status-btn" disabled>查询</button>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-info">
+                <span class="endpoint-method method-post">POST</span>
+                <code>/api/wrapped/2025/marks/finalize/:taskId</code> - 完成收集
+            </div>
+            <button onclick="finalizeCollection()" id="finalize-btn" disabled>完成</button>
+        </div>
+
+        <div style="margin-top: 20px; padding: 15px; background: #fff8c5; border: 1px solid #e4c800; border-radius: 6px;">
+            <div style="font-weight: 600; color: #6f4400; margin-bottom: 10px;">🚀 自动收集</div>
+            <button class="success" onclick="autoCollect()" id="auto-collect-btn">🤖 一键自动收集所有数据</button>
+            <div id="auto-progress" style="margin-top: 10px; display: none;">
+                <div style="background: white; border-radius: 6px; overflow: hidden; height: 20px; border: 1px solid #d0d7de;">
+                    <div id="progress-bar" style="height: 100%; background: #1a7f37; width: 0%; transition: width 0.3s;"></div>
+                </div>
+                <div id="progress-text" style="margin-top: 5px; font-size: 13px; color: #57606a;"></div>
+            </div>
+        </div>
+
+        <div id="marks-response" class="response" style="display: none;"></div>
+    </div>
+
     <!-- 工具区 -->
     <div class="section">
         <h2>🛠️ 工具</h2>
@@ -491,9 +545,226 @@ debug.get("/", (c) => {
         }
 
         function clearResponses() {
-            ['login-response', 'jwt-response', 'api-response'].forEach(id => {
-                document.getElementById(id).style.display = 'none';
+            ['login-response', 'jwt-response', 'api-response', 'marks-response'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
             });
+        }
+
+        // ============================================================================
+        // 2025 Marks Collection Functions
+        // ============================================================================
+
+        let currentTaskId = null;
+
+        async function startMarksCollection() {
+            try {
+                const response = await fetch('/api/wrapped/2025/marks/collect/start', {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentTaskId = data.taskId;
+                    showStatus('marks-status', '✅ 收集任务已创建！Task ID: ' + currentTaskId, true);
+                    showResponse('marks-response', data);
+
+                    // Enable next step buttons
+                    document.getElementById('collect-next-btn').disabled = false;
+                    document.getElementById('check-status-btn').disabled = false;
+                } else {
+                    showStatus('marks-status', '❌ 失败: ' + (data.error || response.statusText), false);
+                    showResponse('marks-response', data);
+                }
+            } catch (error) {
+                showStatus('marks-status', '❌ 请求失败: ' + error.message, false);
+                showResponse('marks-response', { error: error.message });
+            }
+        }
+
+        async function collectNext() {
+            if (!currentTaskId) {
+                showStatus('marks-status', '❌ 请先开始收集！', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(\`/api/wrapped/2025/marks/collect/next/\${currentTaskId}\`, {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.done) {
+                        showStatus('marks-status', '🎉 收集完成！共收集 ' + data.progress.collectedCount + ' 条数据', true);
+                        document.getElementById('finalize-btn').disabled = false;
+                        document.getElementById('collect-next-btn').disabled = true;
+                    } else {
+                        showStatus('marks-status', \`✅ 进度: \${data.progress.percentage}% | \${data.progress.currentShelf} 第 \${data.progress.currentPage} 页 | 已收集: \${data.progress.collectedCount} 条\`, true);
+                    }
+                    showResponse('marks-response', data);
+                } else {
+                    showStatus('marks-status', '❌ 失败: ' + (data.error || response.statusText), false);
+                    showResponse('marks-response', data);
+                }
+            } catch (error) {
+                showStatus('marks-status', '❌ 请求失败: ' + error.message, false);
+                showResponse('marks-response', { error: error.message });
+            }
+        }
+
+        async function checkStatus() {
+            if (!currentTaskId) {
+                showStatus('marks-status', '❌ 请先开始收集！', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(\`/api/wrapped/2025/marks/collect/status/\${currentTaskId}\`, {
+                    credentials: 'include',
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('marks-status', \`📊 状态: \${data.status} | 已收集: \${data.totalCollected} 条\`, true);
+                    showResponse('marks-response', data);
+                } else {
+                    showStatus('marks-status', '❌ 失败: ' + (data.error || response.statusText), false);
+                    showResponse('marks-response', data);
+                }
+            } catch (error) {
+                showStatus('marks-status', '❌ 请求失败: ' + error.message, false);
+                showResponse('marks-response', { error: error.message });
+            }
+        }
+
+        async function finalizeCollection() {
+            if (!currentTaskId) {
+                showStatus('marks-status', '❌ 请先开始收集！', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(\`/api/wrapped/2025/marks/finalize/\${currentTaskId}\`, {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('marks-status', '🎉 收集任务已完成并清理！', true);
+                    showResponse('marks-response', data);
+
+                    // Reset
+                    currentTaskId = null;
+                    document.getElementById('collect-next-btn').disabled = true;
+                    document.getElementById('check-status-btn').disabled = true;
+                    document.getElementById('finalize-btn').disabled = true;
+                } else {
+                    showStatus('marks-status', '❌ 失败: ' + (data.error || response.statusText), false);
+                    showResponse('marks-response', data);
+                }
+            } catch (error) {
+                showStatus('marks-status', '❌ 请求失败: ' + error.message, false);
+                showResponse('marks-response', { error: error.message });
+            }
+        }
+
+        async function autoCollect() {
+            const autoBtn = document.getElementById('auto-collect-btn');
+            const progressDiv = document.getElementById('auto-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+
+            autoBtn.disabled = true;
+            progressDiv.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = '正在开始收集...';
+
+            try {
+                // Step 1: Start collection
+                const startRes = await fetch('/api/wrapped/2025/marks/collect/start', {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+
+                const startData = await startRes.json();
+
+                if (!startRes.ok) {
+                    throw new Error(startData.error || '开始收集失败');
+                }
+
+                const taskId = startData.taskId;
+                currentTaskId = taskId;
+                progressText.textContent = '开始收集... Task ID: ' + taskId;
+
+                // Step 2: Keep collecting until done
+                let done = false;
+                let batchCount = 0;
+
+                while (!done) {
+                    batchCount++;
+                    progressText.textContent = \`收集中... 第 \${batchCount} 批\`;
+
+                    const nextRes = await fetch(\`/api/wrapped/2025/marks/collect/next/\${taskId}\`, {
+                        method: 'POST',
+                        credentials: 'include',
+                    });
+
+                    const nextData = await nextRes.json();
+
+                    if (!nextRes.ok) {
+                        throw new Error(nextData.error || '收集数据失败');
+                    }
+
+                    done = nextData.done;
+
+                    if (nextData.progress) {
+                        const percentage = nextData.progress.percentage || 0;
+                        progressBar.style.width = percentage + '%';
+                        progressText.textContent = \`进度: \${percentage}% | \${nextData.progress.currentShelf} 第 \${nextData.progress.currentPage} 页 | 已收集: \${nextData.progress.collectedCount} 条 | 本批: \${nextData.progress.batchCollected} 条\`;
+                    }
+
+                    showResponse('marks-response', nextData);
+
+                    // Small delay to avoid overwhelming the server
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                // Step 3: Finalize
+                progressText.textContent = '正在完成收集...';
+                const finalRes = await fetch(\`/api/wrapped/2025/marks/finalize/\${taskId}\`, {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+
+                const finalData = await finalRes.json();
+
+                if (!finalRes.ok) {
+                    throw new Error(finalData.error || '完成收集失败');
+                }
+
+                progressBar.style.width = '100%';
+                progressText.textContent = \`🎉 完成！共收集 \${finalData.totalCollected} 条 2025 年的标记数据\`;
+                showStatus('marks-status', \`🎉 自动收集完成！共 \${finalData.totalCollected} 条数据\`, true);
+                showResponse('marks-response', finalData);
+
+                currentTaskId = null;
+
+            } catch (error) {
+                progressBar.style.width = '0%';
+                progressText.textContent = '❌ 失败: ' + error.message;
+                showStatus('marks-status', '❌ 自动收集失败: ' + error.message, false);
+                showResponse('marks-response', { error: error.message });
+            } finally {
+                autoBtn.disabled = false;
+            }
         }
     </script>
 </body>
