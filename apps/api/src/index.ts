@@ -4,6 +4,9 @@ import { createAuth } from "./auth";
 import type { CloudflareBindings } from "./env";
 import { getAllowedOrigin } from "./config/origins";
 import { revokeStaleTokens } from "./cron/revoke-stale-tokens";
+import { drizzle } from "drizzle-orm/d1";
+import { eq, and } from "drizzle-orm";
+import { schema, accounts } from "./db";
 
 type Variables = {
     auth: ReturnType<typeof createAuth>;
@@ -44,10 +47,8 @@ app.all("/api/auth/neodb/api/*", async c => {
         return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const adapter = auth.options.database;
-    if (!adapter) {
-        return c.json({ error: "Database unavailable" }, 500);
-    }
+    // Use drizzle to query database directly
+    const db = drizzle(c.env.ACCOUNT_DATABASE, { schema });
 
     // Extract the path after /api/auth/neodb/api
     const requestUrl = new URL(c.req.url);
@@ -55,20 +56,14 @@ app.all("/api/auth/neodb/api/*", async c => {
 
     try {
         // Find user's NeoDB account
-        const account = await adapter.findOne<{
-            id: string;
-            userId: string;
-            providerId: string;
-            accessToken: string | null;
-            instance: string | null;
-            isAccessTokenRedacted: boolean | null;
-        }>({
-            model: "account",
-            where: [
-                { field: "userId", value: session.user.id },
-                { field: "providerId", value: "neodb" },
-            ],
-        });
+        const account = await db
+            .select()
+            .from(accounts)
+            .where(and(
+                eq(accounts.userId, session.user.id),
+                eq(accounts.providerId, "neodb")
+            ))
+            .get();
 
         if (!account) {
             console.error("[NeoDB API Proxy] No NeoDB account found for user:", session.user.id);
