@@ -50,6 +50,11 @@ export const neodbOAuthPlugin = {
           // Store NeoDB instance domain (e.g., "neodb.social")
           returned: true,
         },
+        tokenRevealedAt: {
+          type: "date",
+          required: false,
+          returned: true,
+        },
       },
     },
     neodbClient: {
@@ -309,6 +314,68 @@ export const neodbOAuthPlugin = {
         const isRegister = Boolean((result as { isRegister?: boolean }).isRegister);
         const to = isRegister ? parsed.newUserURL || inferredCallback : inferredCallback;
         throw ctx.redirect(String(to));
+      },
+    ),
+    neodbRevealToken: createAuthEndpoint(
+      "/neodb/token/reveal",
+      { method: "GET" },
+      async (ctx) => {
+        const session = await getSessionFromCtx(ctx);
+        if (!session?.user?.id) {
+          return ctx.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const adapter = ctx.context.adapter;
+        if (!adapter) {
+          return ctx.json({ error: "Database unavailable" }, { status: 503 });
+        }
+
+        // Find NeoDB account
+        const accounts = await adapter.findMany<{
+          id: string;
+          userId: string;
+          providerId: string;
+          accessToken: string | null;
+          tokenRevealedAt: Date | null;
+        }>({
+          model: "account",
+          where: [
+            { field: "userId", value: session.user.id },
+            { field: "providerId", value: "neodb" },
+          ],
+        });
+
+        const account = accounts?.[0];
+        if (!account || !account.accessToken) {
+          return ctx.json({ error: "No NeoDB account found" }, { status: 404 });
+        }
+
+        const now = new Date();
+        const revealedAt = account.tokenRevealedAt ? new Date(account.tokenRevealedAt) : null;
+
+        // If never revealed, set timestamp and return token
+        if (!revealedAt) {
+          await adapter.update({
+            model: "account",
+            where: [{ field: "id", value: account.id }],
+            update: { tokenRevealedAt: now },
+          });
+          return ctx.json({ accessToken: account.accessToken });
+        }
+
+        // If revealed, check if within 5 minutes
+        const diffMs = now.getTime() - revealedAt.getTime();
+        const fiveMinutesMs = 5 * 60 * 1000;
+
+        if (diffMs <= fiveMinutesMs) {
+          return ctx.json({ accessToken: account.accessToken });
+        }
+
+        // If > 5 minutes, deny access
+        return ctx.json({
+          error: "re_authentication_required",
+          message: "Access token reveal window expired. Please sign in again to get a new token.",
+        }, { status: 403 });
       },
     ),
     // Note: NeoDB API Proxy (/neodb/api/*) is implemented as a Hono route in src/index.ts

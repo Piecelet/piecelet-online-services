@@ -3,8 +3,12 @@ import type { NeoDBMe, NeoDBUserInfo } from "./types";
 export const nowIso = (): string => new Date().toISOString();
 
 export function base64UrlEncode(buffer: Uint8Array): string {
-  return Buffer.from(buffer)
-    .toString("base64")
+  let binary = "";
+  const len = buffer.length;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(buffer[i] ?? 0);
+  }
+  return btoa(binary)
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/g, "");
@@ -13,13 +17,8 @@ export function base64UrlEncode(buffer: Uint8Array): string {
 export async function sha256(input: string): Promise<Uint8Array> {
   const encoder = new TextEncoder();
   const data = encoder.encode(input);
-  if (globalThis.crypto?.subtle) {
-    const digest = await globalThis.crypto.subtle.digest("SHA-256", data);
-    return new Uint8Array(digest);
-  }
-  const { createHash } = await import("node:crypto");
-  const hash = createHash("sha256").update(Buffer.from(data)).digest();
-  return new Uint8Array(hash);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return new Uint8Array(digest);
 }
 
 export async function pkceChallengeFromVerifier(verifier: string): Promise<string> {

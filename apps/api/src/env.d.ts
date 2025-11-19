@@ -1,7 +1,9 @@
-// export interface CloudflareBindings {
-//     ACCOUNT_DATABASE: D1Database;
-//     ACCOUNT_KV: KVNamespace;
-// }
+import type { D1Database, KVNamespace } from "@cloudflare/workers-types";
+
+export interface CloudflareBindings {
+    ACCOUNT_DATABASE: D1Database;
+    ACCOUNT_KV: KVNamespace;
+}
 
 declare global {
     namespace NodeJS {

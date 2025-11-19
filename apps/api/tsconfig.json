@@ -1,13 +1,19 @@
 {
   "extends": "@repo/typescript-config/hono.json",
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "Bundler",
-        "strict": true,
-        "skipLibCheck": true,
-        "lib": ["ESNext"],
-        "jsx": "react-jsx",
-        "jsxImportSource": "hono/jsx"
-    }
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": [
+      "ESNext"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
+  },
+  "exclude": [
+    "drizzle.config.ts",
+    "src/cron/test-cron.ts"
+  ]
 }

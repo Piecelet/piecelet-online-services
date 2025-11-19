@@ -73,6 +73,7 @@ export const accounts = sqliteTable("accounts", {
         mode: "boolean",
     }).$defaultFn(() => false),
     instance: text("instance"),
+    tokenRevealedAt: integer("token_revealed_at", { mode: "timestamp_ms" }),
 });
 
 export const verifications = sqliteTable("verifications", {

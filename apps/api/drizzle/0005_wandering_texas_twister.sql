@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `token_revealed_at` integer;
