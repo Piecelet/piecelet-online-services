@@ -30,3 +30,7 @@ This monorepo contains the Piecelet account web app and auth API. Use this guide
 - Write concise, imperative commit messages (e.g., `feat: add password reset flow`, `fix(api): handle expired sessions`).
 - Keep changes scoped to a single concern; update docs or config alongside code.
 - PRs should include: a short summary, related issues, testing notes (commands run), and screenshots or API examples for UI or behavior changes.
+
+## Agent-Specific Instructions / 代理指引
+- Before taking any action, while you are still planning, **always** invoke the Better Auth MCP (`mcp__better-auth__chat`) to gather relevant context for this repository.
+- 在开始具体修改代码前、仍处于“计划阶段”时，务必先调用 Better Auth MCP（`mcp__better-auth__chat`）以获取与本仓库相关的上下文信息。
