@@ -42,7 +42,7 @@ export function getAllowedOrigins(): readonly string[] {
     // In dev, include localhost origins for Better Auth
     // In prod, only production origins
     return isDevelopment()
-        ? [...PRODUCTION_ORIGINS, "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:4173", "http://localhost:8787", "http://localhost:8788", "http://127.0.0.1:5173"]
+        ? [...PRODUCTION_ORIGINS, "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:4173", "http://localhost:8787", "http://localhost:8788", "http://127.0.0.1:5173", "http://localhost:4321", "http://127.0.0.1:4321"]
         : PRODUCTION_ORIGINS;
 }
 
