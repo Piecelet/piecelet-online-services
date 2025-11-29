@@ -7,8 +7,6 @@ export interface NeoDBClient {
   redirect_uri: string;
 }
 
-// export type NeoDBWhere = Where;
-
 export type NeoDBAdapter = Adapter;
 
 export interface NeoDBState {
@@ -72,3 +70,4 @@ export interface AuthResultData {
     image?: string | null;
   };
 }
+

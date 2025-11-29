@@ -1,4 +1,4 @@
-import type { NeoDBMe, NeoDBUserInfo } from "@/neodb/types";
+import type { NeoDBMe, NeoDBUserInfo } from "./types";
 
 export const nowIso = (): string => new Date().toISOString();
 
@@ -45,7 +45,9 @@ export async function assertIsNeoDBInstance(base: URL): Promise<void> {
     throw new Error("invalid_instance");
   }
   const j = (await r.json().catch(() => null)) as unknown;
-  const version = typeof (j as { version?: unknown })?.version === "string" ? ((j as { version: string }).version.toLowerCase()) : "";
+  const version = typeof (j as { version?: unknown })?.version === "string"
+    ? ((j as { version: string }).version.toLowerCase())
+    : "";
   if (!version.includes("neodb")) {
     throw new Error("not_a_neodb_instance");
   }
@@ -88,7 +90,7 @@ export function extractNeoDBUserInfo(me: NeoDBMe, instanceHost: string): NeoDBUs
   // Extract email from external_accounts
   let email: string | undefined;
   if (me.external_accounts) {
-    const emailAccount = me.external_accounts.find(acc => acc.platform === "email");
+    const emailAccount = me.external_accounts.find((acc) => acc.platform === "email");
     if (emailAccount?.handle) {
       email = emailAccount.handle;
     }
