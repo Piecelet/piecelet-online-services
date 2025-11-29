@@ -273,6 +273,8 @@ export const neodbOAuthPlugin = {
             isAccessTokenRedacted: false,
             // instance: Store NeoDB instance domain
             instance: instanceURL.host,
+            // Clear any previous token reveal timestamp on new login
+            tokenRevealedAt: null,
           } as any,
           callbackURL: parsed.callbackURL || "/",
           // Always update user info on login to sync latest changes from NeoDB
@@ -303,6 +305,8 @@ export const neodbOAuthPlugin = {
             update: {
               isAccessTokenRedacted: false,
               instance: instanceURL.host,  // Ensure instance is always set
+              // Clear token reveal time on fresh login so user gets a new reveal window
+              tokenRevealedAt: null,
             },
           });
         } catch (e) {
@@ -322,12 +326,12 @@ export const neodbOAuthPlugin = {
       async (ctx) => {
         const session = await getSessionFromCtx(ctx);
         if (!session?.user?.id) {
-          return ctx.json({ error: "Unauthorized" }, { status: 401 });
+          return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const adapter = ctx.context.adapter;
         if (!adapter) {
-          return ctx.json({ error: "Database unavailable" }, { status: 503 });
+          return Response.json({ error: "Database unavailable" }, { status: 503 });
         }
 
         // Find NeoDB account
@@ -347,7 +351,7 @@ export const neodbOAuthPlugin = {
 
         const account = accounts?.[0];
         if (!account || !account.accessToken) {
-          return ctx.json({ error: "No NeoDB account found" }, { status: 404 });
+          return Response.json({ error: "No NeoDB account found" }, { status: 404 });
         }
 
         const now = new Date();
@@ -372,7 +376,7 @@ export const neodbOAuthPlugin = {
         }
 
         // If > 5 minutes, deny access
-        return ctx.json({
+        return Response.json({
           error: "re_authentication_required",
           message: "Access token reveal window expired. Please sign in again to get a new token.",
         }, { status: 403 });
