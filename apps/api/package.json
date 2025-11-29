@@ -24,7 +24,7 @@
     "better-auth-cloudflare": "^0.2.8",
     "drizzle-orm": "^0.44.7",
     "hono": "^4.10.5",
-    "@repo/neodb-plugin": "workspace:*"
+    "better-auth-neodb": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251111.0",

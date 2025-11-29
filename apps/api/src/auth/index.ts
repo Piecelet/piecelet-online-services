@@ -6,7 +6,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/d1";
 import { schema } from "@/db";
 import type { CloudflareBindings } from "@/env";
-import { neodbOAuthPlugin } from "@repo/neodb-plugin";
+import { neodbOAuthPlugin } from "better-auth-neodb";
 import { getAllowedDomains, getAllowedOrigins, getBaseURL } from "@/config/origins";
 import { username } from "better-auth/plugins";
 

@@ -1,2 +1,1 @@
-export { neodbOAuthPlugin } from "@repo/neodb-plugin";
-
+export { neodbOAuthPlugin } from "better-auth-neodb";
