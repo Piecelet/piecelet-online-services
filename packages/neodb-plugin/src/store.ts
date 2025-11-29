@@ -1,4 +1,4 @@
-import type { NeoDBAdapter, NeoDBClient } from "./types";
+import type { NeoDBAdapter, NeoDBClient } from "./types.js";
 
 export async function getClient(adapter: NeoDBAdapter, instance: string): Promise<NeoDBClient | null> {
   const result = await adapter.findOne<{
@@ -128,4 +128,3 @@ export async function popState(
     callbackUrl: result.callbackUrl,
   };
 }
-

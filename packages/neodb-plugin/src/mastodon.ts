@@ -1,6 +1,6 @@
-import type { NeoDBAdapter, NeoDBClient, OAuthTokenResponse, NeoDBMe } from "./types";
-import { saveClient, getClient } from "./store";
-import { parseNeodbMe } from "./util";
+import type { NeoDBAdapter, NeoDBClient, OAuthTokenResponse, NeoDBMe } from "./types.js";
+import { saveClient, getClient } from "./store.js";
+import { parseNeodbMe } from "./util.js";
 
 export async function registerMastodonApp(base: URL, redirectUri: string): Promise<NeoDBClient> {
   const body = new URLSearchParams();
@@ -122,4 +122,3 @@ export async function revokeToken(instanceOrigin: string, client: NeoDBClient, t
     throw new Error("token_revoke_failed");
   }
 }
-

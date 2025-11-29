@@ -1,4 +1,4 @@
-export { neodbOAuthPlugin } from "./plugin";
+export { neodbOAuthPlugin } from "./plugin.js";
 export type {
   NeoDBClient,
   NeoDBAdapter,
@@ -7,7 +7,7 @@ export type {
   NeoDBUserInfo,
   OAuthTokenResponse,
   AuthResultData,
-} from "./types";
+} from "./types.js";
 export {
   assertIsNeoDBInstance,
   normalizeInstance,
@@ -15,18 +15,17 @@ export {
   parseNeodbMe,
   extractNeoDBUserInfo,
   nowIso,
-} from "./util";
+} from "./util.js";
 export {
   getClient,
   saveClient,
   saveState,
   popState,
-} from "./store";
+} from "./store.js";
 export {
   getOrCreateClient,
   buildAuthorizeUrl,
   exchangeToken,
   fetchMe,
   revokeToken,
-} from "./mastodon";
-
+} from "./mastodon.js";

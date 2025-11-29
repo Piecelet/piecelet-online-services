@@ -1,4 +1,4 @@
-import type { NeoDBMe, NeoDBUserInfo } from "./types";
+import type { NeoDBMe, NeoDBUserInfo } from "./types.js";
 
 export const nowIso = (): string => new Date().toISOString();
 
@@ -90,7 +90,7 @@ export function extractNeoDBUserInfo(me: NeoDBMe, instanceHost: string): NeoDBUs
   // Extract email from external_accounts
   let email: string | undefined;
   if (me.external_accounts) {
-    const emailAccount = me.external_accounts.find((acc) => acc.platform === "email");
+    const emailAccount = me.external_accounts.find((acc: { platform?: string }) => acc.platform === "email");
     if (emailAccount?.handle) {
       email = emailAccount.handle;
     }
@@ -115,4 +115,3 @@ export function extractNeoDBUserInfo(me: NeoDBMe, instanceHost: string): NeoDBUs
     externalAcct: me.external_acct,
   };
 }
-

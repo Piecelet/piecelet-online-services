@@ -3,10 +3,10 @@ import { generateState, parseState, handleOAuthUserInfo } from "better-auth/oaut
 import { setSessionCookie } from "better-auth/cookies";
 import type { BetterAuthPlugin } from "better-auth";
 
-import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, extractNeoDBUserInfo } from "./util";
-import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe, revokeToken } from "./mastodon";
-import type { NeoDBMe, AuthResultData } from "./types";
-import { getClient, popState, saveState } from "./store";
+import { assertIsNeoDBInstance, normalizeInstance, pkceChallengeFromVerifier, extractNeoDBUserInfo } from "./util.js";
+import { getOrCreateClient, buildAuthorizeUrl, exchangeToken, fetchMe, revokeToken } from "./mastodon.js";
+import type { NeoDBMe, AuthResultData } from "./types.js";
+import { getClient, popState, saveState } from "./store.js";
 
 function buildAccountId(me: NeoDBMe, instanceHost: string): string {
   if (me.url) return String(me.url);
@@ -487,4 +487,3 @@ export const neodbOAuthPlugin = {
     ],
   },
 } satisfies BetterAuthPlugin;
-
