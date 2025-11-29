@@ -76,6 +76,9 @@ jobs:
             packages/*/node_modules
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
+      - name: Build better-auth-neodb plugin
+        run: pnpm --filter better-auth-neodb run build
+
       - name: Generate API wrangler.jsonc from template
         working-directory: apps/api
         run: |
