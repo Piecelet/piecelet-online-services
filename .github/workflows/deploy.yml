@@ -118,7 +118,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           echo "🛠️  Migrating Account Database Schema..."
-          pnpm --filter api run prepare:db:prod
+          pnpm --filter api run db:migrate:prod
 
       - name: Build and deploy API
         env:
