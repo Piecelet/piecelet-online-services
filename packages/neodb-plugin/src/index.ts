@@ -29,3 +29,4 @@ export {
   fetchMe,
   revokeToken,
 } from "./mastodon.js";
+export * from "./client.js";
